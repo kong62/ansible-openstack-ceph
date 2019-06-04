@@ -1,0 +1,5 @@
+*.js linguist-language=ansible
+*.css linguist-language=ansible
+*.html linguist-language=ansible
+*.yml linguist-language=ansible
+*.php linguist-language=ansible
