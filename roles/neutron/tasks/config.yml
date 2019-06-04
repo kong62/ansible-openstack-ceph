@@ -1,0 +1,22 @@
+- name: Provide neutron.conf to /etc/neutron/neutron.conf
+  template: src=neutron.conf.j2 dest=/etc/neutron/neutron.conf
+  notify:
+    - Restart neutron-server
+
+- name: Provide ml2_conf.ini to /etc/neutron/plugins/ml2/ml2_conf.ini
+  template: src=ml2_conf.ini.j2 dest=/etc/neutron/plugins/ml2/ml2_conf.ini
+  notify:
+    - Restart neutron-server
+
+- name: Link /etc/neutron/plugins/ml2/ml2_conf.ini to /etc/neutron/plugin.ini
+  file: src=/etc/neutron/plugins/ml2/ml2_conf.ini dest=/etc/neutron/plugin.ini state=link
+  notify:
+    - Restart neutron-server
+
+- name: Sync Neutron Database
+  shell: neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+  run_once: yes
+
+- name: Enable and Start neutron-server
+  service: name=neutron-server state=started enabled=yes

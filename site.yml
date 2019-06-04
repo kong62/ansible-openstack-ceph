@@ -1,0 +1,159 @@
+---
+- name: Init Centos OS Bases
+  hosts: all
+  gather_facts: no
+  roles:
+    - { role: base }
+    - { role: bond, when: ENABLE_BOND | bool == true }
+    - { role: openstack_base }
+
+
+- name: Install LB
+  hosts: cloud-loadbalance
+  gather_facts: no
+  roles:
+    - { role: pacemaker, when: ENABLE_PACEMAKER | bool == true }
+
+
+- name: Install Ceph Mons And Mgrs
+  hosts: cloud-mon
+  gather_facts: no
+  roles:
+    - { role: ceph_common, when: ENABLE_CEPH | bool == true }
+    - { role: ceph_mon, when: ENABLE_CEPH | bool == true }
+    - { role: ceph_mgr, when: ENABLE_CEPH | bool == true }
+
+
+- name: Install Ceph Osds
+  hosts: cloud-osd
+  gather_facts: no
+  roles:
+    - { role: ceph_common, when: ENABLE_CEPH | bool == true }
+    - { role: ceph_osd, when: ENABLE_CEPH | bool == true }
+
+
+- name: Create Pools For Openstack
+  hosts: cloud-compute,cloud-controller,cloud-storage
+  gather_facts: no
+  roles:
+    - { role: ceph_common, when: ENABLE_CEPH | bool == true }
+    - { role: ceph_openstack, when: ENABLE_CEPH | bool == true }
+
+
+- name: Install Memcache Mariadb Rabbitmq Keystone Glance Neutron On Controller Nodes
+  hosts: cloud-controller
+  gather_facts: no
+  roles:
+    - { role: memcache, when: ENABLE_OPENSTACK | bool == true  and ENABLE_MEMCACHED | bool == true }
+    - { role: mariadb_cluster, when: ENABLE_OPENSTACK | bool == true  and ENABLE_MYSQL | bool == true }
+    - { role: rabbitmq_cluster, when: ENABLE_OPENSTACK | bool == true  and ENABLE_RABBITMQ | bool == true }
+    - { role: keystone, when: ENABLE_OPENSTACK | bool == true  and ENABLE_KEYSTONE | bool == true }
+    - { role: glance, when: ENABLE_OPENSTACK | bool == true  and ENABLE_GLANCE | bool == true }
+    - { role: neutron, when: ENABLE_OPENSTACK | bool == true  and ENABLE_NEUTRON | bool == true }
+
+
+- name: Install Network Agents On Network Nodes
+  hosts: cloud-network
+  gather_facts: no
+  roles:
+    - { role: neutron_dhcp_agent, when: ENABLE_OPENSTACK | bool == true  and ENABLE_NEUTRON | bool == true }
+    - { role: neutron_l3_agent, when: ENABLE_OPENSTACK | bool == true  and ENABLE_NEUTRON | bool == true }
+    - { role: neutron_metadata_agent, when: ENABLE_OPENSTACK | bool == true  and ENABLE_NEUTRON | bool == true }
+    - { role: neutron_openvswitch_agent, when: ENABLE_OPENSTACK | bool == true  and ENABLE_NEUTRON | bool == true }
+    - { role: neutron_lbaas_agent, when: ENABLE_LBAAS | bool == true and ENABLE_OPENSTACK | bool == true  and ENABLE_NEUTRON | bool == true }
+
+
+- name: Install Network Agent On Compute Nodes
+  hosts: cloud-compute
+  gather_facts: no
+  roles:
+    - { role: neutron_openvswitch_agent, when: ENABLE_OPENSTACK | bool == true  and ENABLE_NEUTRON | bool == true }
+
+
+- name: Install Cinder On Controller Nodes
+  hosts: cloud-controller
+  gather_facts: yes
+  roles:
+    - { role: cinder, when: ENABLE_OPENSTACK | bool == true  and ENABLE_CINDER | bool == true }
+
+
+- name: Install Cinder On Storage Nodes
+  hosts: cloud-storage
+  gather_facts: yes
+  roles:
+    - { role: cinder_volume, when: ENABLE_OPENSTACK | bool == true  and ENABLE_CINDER | bool == true }
+
+
+- name: Install Nova On Controller Nodes
+  hosts: cloud-controller
+  gather_facts: no
+  roles:
+    - { role: nova, when: ENABLE_OPENSTACK | bool == true  and ENABLE_NOVA | bool == true }
+
+
+- name: Install Nova On Compute Nodes
+  hosts: cloud-compute
+  gather_facts: no
+  roles:
+    - { role: nova_compute, when: ENABLE_OPENSTACK | bool == true  and ENABLE_NOVA | bool == true }
+
+
+- name: Install Dashboard On Controller Nodes
+  hosts: cloud-controller
+  gather_facts: no
+  roles:
+    - { role: horizon, when: ENABLE_OPENSTACK | bool == true  and ENABLE_HORIZON | bool == true  }
+
+
+- name: Fix Openstack Bugs
+  hosts: all
+  gather_facts: no
+  roles:
+    - { role: openstack_bugs_fix, when: ENABLE_OPENSTACK | bool == true and ENABLE_OPENSTACK_BUGS_FIX | bool == true }
+
+
+- name: Deploy Zabbix Server
+  hosts: cloud-monitor
+  roles:
+    - { role: zabbix_server, when: ENABLE_ZABBIX | bool == true }
+
+
+- name: Deploy Zabbix Agent
+  hosts: all
+  roles:
+    - { role: zabbix_agent, when: ENABLE_ZABBIX | bool == true }
+
+
+- name: Deploy influxdb chronograf kapacitor
+  hosts: "cloud-monitor"
+  gather_facts: no 
+  roles:
+    - { role: influxdb, when: ENABLE_INFLUXDATA | bool == true }
+
+
+- name: Deploy telegraf
+  hosts: all
+  gather_facts: no
+  roles:
+    - { role: telegraf, when: ENABLE_INFLUXDATA | bool == true }
+
+
+- name: Deploy grafana
+  hosts: "cloud-monitor"
+  gather_facts: no
+  roles:
+    - { role: grafana, when: ENABLE_GRAFANA | bool == true }
+
+
+- name: Deploy prometheus
+  hosts: "cloud-monitor"
+  gather_facts: yes
+  roles:
+    - { role: prometheus, when: ENABLE_PROMETHEUS | bool == true }
+
+
+- name: Deploy ELK
+  hosts: "cloud-monitor"
+  gather_facts: no
+  roles:
+    - { role: elasticsearch, when: ENABLE_ELKSTACK| bool == true }

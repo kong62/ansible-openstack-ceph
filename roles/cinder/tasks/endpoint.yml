@@ -1,0 +1,92 @@
+- block:
+    - name: Test Cinder User does it exist
+      shell: . /root/admin-openrc.sh && openstack user list|grep -w cinder || exit 0
+      changed_when: false
+      register: cinder_user
+
+    - name: Create Cinder User
+      shell: . /root/admin-openrc.sh && openstack user create --domain default --password {% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{CINDER_PASS}}{% endif %} {{CINDER_USER}}
+      when: cinder_user.stdout == ""
+
+    - name: Add Cinder User to Admin Role
+      shell: . /root/admin-openrc.sh && openstack role add --project service --user {{CINDER_USER}} admin
+
+    - name: Test Cinder Service does it exist
+      shell: . /root/admin-openrc.sh && openstack service list|grep -w cinder || exit 0
+      changed_when: false
+      register: cinder_service
+
+    - name: Create Cinder Service
+      shell: . /root/admin-openrc.sh && openstack service create --name cinder --description "OpenStack Block Storage" volume
+      when: cinder_service.stdout == ""
+ 
+    - name: Test Cinder Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint list|grep -w cinder || exit 0
+      changed_when: false
+      register: cinder_endpoint
+
+    - name: Create Cinder Public Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} volume public http://{{VIRTUALIP_FQDN}}:{{CINDER_API_PORT}}/v1/%\(project_id\)s
+      when: cinder_endpoint.stdout == ""
+
+    - name: Create Cinder Internal Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} volume internal http://{{VIRTUALIP_FQDN}}:{{CINDER_API_PORT}}/v1/%\(project_id\)s
+      when: cinder_endpoint.stdout == ""
+
+    - name: Create Cinder admin Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} volume admin http://{{VIRTUALIP_FQDN}}:{{CINDER_API_PORT}}/v1/%\(project_id\)s
+      when: cinder_endpoint.stdout == ""
+
+    - name: Test Cinderv2 Service does it exist
+      shell: . /root/admin-openrc.sh && openstack service list|grep -w cinderv2 || exit 0
+      changed_when: false
+      register: cinderv2_service
+
+    - name: Create Cinderv2 Service
+      shell: . /root/admin-openrc.sh && openstack service create --name cinderv2 --description "OpenStack Block Storage" volumev2
+      when: cinderv2_service.stdout == ""
+ 
+    - name: Test Cinderv2 Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint list|grep -w cinderv2 || exit 0
+      changed_when: false
+      register: cinderv2_endpoint
+
+    - name: Create Cinderv2 Public Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} volumev2 public http://{{VIRTUALIP_FQDN}}:{{CINDER_API_PORT}}/v2/%\(project_id\)s
+      when: cinderv2_endpoint.stdout == ""
+
+    - name: Create Cinderv2 Internal Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} volumev2 internal http://{{VIRTUALIP_FQDN}}:{{CINDER_API_PORT}}/v2/%\(project_id\)s
+      when: cinderv2_endpoint.stdout == ""
+
+    - name: Create Cinderv2 admin Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} volumev2 admin http://{{VIRTUALIP_FQDN}}:{{CINDER_API_PORT}}/v2/%\(project_id\)s
+      when: cinderv2_endpoint.stdout == ""
+
+    - name: Test Cinderv3 Service does it exist
+      shell: . /root/admin-openrc.sh && openstack service list|grep -w cinderv3 || exit 0
+      changed_when: false
+      register: cinderv3_service
+
+    - name: Create Cinderv3 Service
+      shell: . /root/admin-openrc.sh && openstack service create --name cinderv3 --description "OpenStack Block Storage" volumev3
+      when: cinderv3_service.stdout == ""
+ 
+    - name: Test Cinderv3 Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint list|grep -w cinderv3 || exit 0
+      changed_when: false
+      register: cinderv3_endpoint
+
+    - name: Create Cinderv3 Public Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} volumev3 public http://{{VIRTUALIP_FQDN}}:{{CINDER_API_PORT}}/v3/%\(project_id\)s
+      when: cinderv3_endpoint.stdout == ""
+
+    - name: Create Cinderv3 Internal Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} volumev3 internal http://{{VIRTUALIP_FQDN}}:{{CINDER_API_PORT}}/v3/%\(project_id\)s
+      when: cinderv3_endpoint.stdout == ""
+
+    - name: Create Cinderv3 admin Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} volumev3 admin http://{{VIRTUALIP_FQDN}}:{{CINDER_API_PORT}}/v3/%\(project_id\)s
+      when: cinderv3_endpoint.stdout == ""
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+  run_once: yes

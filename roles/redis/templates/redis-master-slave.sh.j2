@@ -1,0 +1,36 @@
+#/bin/bash
+
+VIP={{ OS_CONTROLLER_VIP }}
+redis_status=$(systemctl status redis-server.service | awk '/^[ \t]*Active:/' | awk -F '(' '{print $2}' | awk -F ')' '{print $1}')
+node_vip=$(ip addr|grep "/32 scope global"|egrep bond|awk '{print $2}'| awk -F '/' '{print $1}')
+#redis_rep_status=$(redis-cli -p 6379 info replication | grep 'role:' | cut -d ':' -f 2)
+redis_rep_status=$(redis-cli -p 6379 info replication | grep 'role:' | awk -F ':' '{print $2}')
+
+if [ "${node_vip}" = "${VIP}" ]
+then
+  if [ "${redis_status}" != "running" ]
+  then
+    systemctl restart redis-server.service
+    redis-cli -p 6379 slaveof no one
+  else
+    if [[ "${redis_rep_status}" != master* ]]
+    then
+      redis-cli -p 6379 slaveof no one
+    fi
+  fi
+else
+  if [ "${redis_status}" != "running" ]
+  then
+    systemctl restart redis-server.service
+    redis-cli -p 6379 slaveof no one
+    redis-cli -p 6379 slaveof {{ OS_CONTROLLER_VIP }} 6379
+  else
+    if [[ "${redis_rep_status}" == master* ]]
+    then
+      redis-cli -p 6379 slaveof no one
+      redis-cli -p 6379 slaveof {{ OS_CONTROLLER_VIP }} 6379
+    else
+      redis-cli -p 6379 slaveof {{ OS_CONTROLLER_VIP }} 6379
+    fi
+  fi
+fi

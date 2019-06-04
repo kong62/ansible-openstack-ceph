@@ -1,0 +1,2 @@
+- name: Provide ceph.conf to /etc/ceph/ceph.conf
+  template: src=ceph.conf.j2 dest=/etc/ceph/ceph.conf

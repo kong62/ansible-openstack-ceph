@@ -1,0 +1,2 @@
+- name: Provide openstack-status to Nodes
+  copy: src=openstack-status dest=/usr/bin/openstack-status mode=0755

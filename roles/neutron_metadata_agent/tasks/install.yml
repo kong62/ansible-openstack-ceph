@@ -1,0 +1,7 @@
+- name: Install Neutron
+  yum: name={{item}} state=present
+  loop:
+    - openstack-neutron
+    - openstack-neutron-ml2
+    - openstack-neutron-openvswitch
+    #- openstack-neutron-linuxbridge

@@ -1,0 +1,8 @@
+- name: Install openstack-neutron-openvswitch
+  yum: name={{item}} state=present
+  loop:
+    - openstack-neutron-openvswitch
+    - ebtables
+    - ipset
+    - tcpdump
+    - bridge-utils

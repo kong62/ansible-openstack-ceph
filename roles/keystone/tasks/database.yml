@@ -1,0 +1,12 @@
+- name: Create DATABASE keystone for keystone service
+  mysql_db: name={{KEYSTONE_DBNAME}} state=present login_host=localhost login_port={{MYSQL_PORT}} login_unix_socket=/var/lib/mysql/mysql.sock
+  run_once: yes
+  delegate_to: "{{groups['cloud-database'][0]}}"
+
+- name: GRANT ALL PRIVILEGES for keystone service
+  mysql_user: name={{KEYSTONE_DBUSER}} password={% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{KEYSTONE_DBPASS}}{% endif %} priv={{KEYSTONE_DBNAME}}.*:ALL host={{item}} state=present login_host=localhost login_port={{MYSQL_PORT}} login_unix_socket=/var/lib/mysql/mysql.sock
+  loop:
+    - 'localhost'
+    - '%'
+  run_once: yes
+  delegate_to: "{{groups['cloud-database'][0]}}"

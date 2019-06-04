@@ -1,0 +1,7 @@
+- name: Provide Config File to /etc/sysconfig/memcached
+  template: src=memcached.j2 dest=/etc/sysconfig/memcached
+  notify:
+    - Restart memcached
+
+- name: Enable and Stared memcached
+  service: name=memcached enabled=yes state=started

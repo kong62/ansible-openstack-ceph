@@ -1,0 +1,69 @@
+- name: Provide keystone.conf to /etc/keystone/keystone.conf
+  template: src=keystone.conf.j2 dest=/etc/keystone/keystone.conf
+  notify:
+    - Restart httpd
+  
+- name: Provide wsgi-keystone.conf to /etc/httpd/conf.d/wsgi-keystone.conf
+  template: src=wsgi-keystone.conf.j2 dest=/etc/httpd/conf.d/wsgi-keystone.conf
+  notify:
+    - Restart httpd
+
+- name: Provide httpd.conf to /etc/httpd/conf/httpd.conf
+  template: src=httpd.conf.j2 dest=/etc/httpd/conf/httpd.conf
+  notify:
+    - Restart httpd
+
+- block:
+    - name: Sync Keystone Database
+      shell: keystone-manage db_sync
+
+    - name: Initialize Fernet Setup Repositories
+      shell: keystone-manage fernet_setup --keystone-user {{KEYSTONE_USER}} --keystone-group keystone
+
+    - name: Initialize Credential Setup Repositories
+      shell: keystone-manage credential_setup --keystone-user {{KEYSTONE_USER}} --keystone-group keystone
+
+    - name: Bootstrap The Identity Service
+      shell: keystone-manage bootstrap --bootstrap-password {% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{KEYSTONE_PASS}}{% endif %} --bootstrap-admin-url http://{{VIRTUALIP_FQDN}}:{{KEYSTONE_PORT}}/v3/ --bootstrap-internal-url http://{{VIRTUALIP_FQDN}}:{{KEYSTONE_PORT}}/v3/ --bootstrap-public-url http://{{VIRTUALIP_FQDN}}:{{KEYSTONE_PORT}}/v3/ --bootstrap-region-id {{REGION_NAME}}
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+  run_once: yes
+
+- name: Mkdir for credential-keys And fernet-keys
+  file: path=/etc/keystone/{{item}} state=directory owner=keystone group=keystone 
+  loop:
+    - credential-keys
+    - fernet-keys
+  when: inventory_hostname != groups['cloud-controller'][0]
+
+- name: Sync credential-keys
+  synchronize: src=/etc/keystone/credential-keys/{{item}} dest=/etc/keystone/credential-keys/{{item}} mode=push
+  loop:
+    - '0'
+    - '1'
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+  
+- name: Sync fernet-keys
+  synchronize: src=/etc/keystone/fernet-keys/{{item}} dest=/etc/keystone/fernet-keys/{{item}} mode=push
+  loop:
+    - '0'
+    - '1'
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+
+- name: Enable and Start httpd
+  service: name=httpd state=started enabled=yes
+
+- name: Provide admin-openrc.sh to /root/admin-openrc.sh
+  template: src=admin-openrc.sh.j2 dest=/root/admin-openrc.sh
+
+- name: Test service Project does it exist
+  shell: . /root/admin-openrc.sh && openstack project list|grep -w service || exit 0
+  changed_when: false
+  register: service_project
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+  run_once: yes
+
+- name: Create service Project
+  shell: . /root/admin-openrc.sh && openstack project create --domain default --description "Service Project" service 2>/dev/null
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+  run_once: yes
+  when: service_project.stdout == ""

@@ -1,0 +1,5 @@
+- name: Install Neutron
+  yum: name={{item}} state=present
+  loop:
+    - haproxy
+    - openstack-neutron-lbaas

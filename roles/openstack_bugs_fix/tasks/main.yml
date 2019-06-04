@@ -1,0 +1,8 @@
+---
+# tasks file for openstack_bugs_fix
+
+- include: neutronclient.yml
+
+- include: common.yml
+
+- meta: flush_handlers

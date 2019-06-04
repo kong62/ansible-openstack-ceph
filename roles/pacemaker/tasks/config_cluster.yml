@@ -1,0 +1,84 @@
+- name: Provide haproxy.cfg To /etc/haproxy/haproxy.cfg
+  template: src=haproxy.cfg.j2 dest=/etc/haproxy/haproxy.cfg
+  notify:
+    - Restart haproxy
+
+- name: Provide rsyslog.conf To /etc/rsyslog.conf
+  template: src=rsyslog.conf.j2 dest=/etc/rsyslog.conf
+  notify:
+    - Restart rsyslog
+
+- name: Provide rsyslog To /etc/sysconfig/rsyslog
+  template: src=rsyslog.j2 dest=/etc/sysconfig/rsyslog
+  notify:
+    - Restart rsyslog
+
+- name: Enable and Start pcsd
+  service: name=pcsd enabled=yes state=started
+
+- name: Create password for PCS_USER User
+  shell: openssl passwd -salt 'kong62' {% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{PCS_PASS}}{% endif %}
+  run_once: yes
+  changed_when: false
+  delegate_to: "{{groups['cloud-loadbalance'][0]}}"
+  register: hacluster_pass
+
+- name: Set Password for User PCS_USER
+  user: name={{PCS_USER}} password={{hacluster_pass.stdout}}
+
+- name: Test pcs Cluster Status
+  shell: pcs status|grep 'nodes configured'|awk '{print $1}'
+  register: pcs_status
+  delegate_to: "{{groups['cloud-loadbalance'][0]}}"
+  run_once: yes
+  changed_when: false
+
+- name: Create pcs Cluster Block
+  block:
+    - name: Auth pcs Cluster
+      shell: pcs cluster auth {% for i in groups['cloud-loadbalance'] %} {{i}} {% endfor %} -u {{PCS_USER}} -p {% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{PCS_PASS}}{% endif %} --force
+    
+    - name: Create pcs Cluster
+      shell: pcs cluster setup {% for i in groups['cloud-loadbalance'] %} {{i}} {% endfor %} --name my-cluster --transport udpu --force
+    
+    - name: Enable pcs Cluster
+      shell: pcs cluster enable --all && pcs cluster start --all
+    
+    - name: Set stonith-enabled to false
+      shell: pcs property set stonith-enabled=false
+    
+    - name: Set no-quorum-policy to ignore
+      shell: pcs property set no-quorum-policy=ignore
+    
+    - name: Set resource-stickiness to 100
+      shell: pcs resource defaults resource-stickiness=100
+    
+    - name: Set Some Property for pcs Cluster
+      shell: pcs property set pe-warn-series-max=1000 pe-input-series-max=1000 pe-error-series-max=1000 cluster-recheck-interval=5min
+    
+    - name: Set VIP for pcs Cluster
+      shell: pcs resource create VirtualIP ocf:heartbeat:IPaddr2 ip={{VIRTUALIP}} op monitor interval=30s timeout=20s on-fail=restart
+    
+    - name: Set haproxy for pcs Cluster
+      shell: pcs resource create LB-Haproxy systemd:haproxy op monitor interval="30s" timeout="20s" --clone
+    
+    - name: Set HAProxy and VIP On Same Node
+      shell: pcs constraint colocation add LB-Haproxy-clone with VirtualIP INFINITY
+    
+    - name: Set Haproxy Stared After VIP
+      shell: pcs constraint order start VirtualIP then LB-Haproxy-clone kind=Optional
+  delegate_to: "{{groups['cloud-loadbalance'][0]}}"
+  run_once: yes
+  when: pcs_status.stderr.find('cluster is not currently running on this node') != -1
+
+- name: Test pcs Cluster Status Again
+  shell: pcs cluster status 
+  register: pcs_status_again
+  delegate_to: "{{groups['cloud-loadbalance'][0]}}"
+  changed_when: false
+  run_once: yes
+
+- name: Show Pacemaker Cluster Status
+  debug: var=pcs_status_again.stdout_lines
+  delegate_to: "{{groups['cloud-loadbalance'][0]}}"
+  run_once: yes

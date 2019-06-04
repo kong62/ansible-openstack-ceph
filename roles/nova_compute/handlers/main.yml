@@ -1,0 +1,6 @@
+---
+- name: Restart Compute Services
+  service: name={{item}} state=started enabled=yes
+  loop:
+    - libvirtd
+    - openstack-nova-compute

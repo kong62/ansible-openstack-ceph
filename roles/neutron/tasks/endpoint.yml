@@ -1,0 +1,40 @@
+- block:
+    - name: Test Neutron User does it exist
+      shell: . /root/admin-openrc.sh && openstack user list|grep -w neutron || exit 0
+      changed_when: false
+      register: neutron_user
+
+    - name: Create Neutron User
+      shell: . /root/admin-openrc.sh && openstack user create --domain default --password {% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{NEUTRON_PASS}}{% endif %} {{NEUTRON_USER}}
+      when: neutron_user.stdout == ""
+
+    - name: Add Neutron User to Admin Role
+      shell: . /root/admin-openrc.sh && openstack role add --project service --user {{NEUTRON_USER}} admin
+
+    - name: Test Neutron Service does it exist
+      shell: . /root/admin-openrc.sh && openstack service list|grep -w neutron || exit 0
+      changed_when: false
+      register: neutron_service
+
+    - name: Create Neutron Service
+      shell: . /root/admin-openrc.sh && openstack service create --name neutron --description "OpenStack Networking" network
+      when: neutron_service.stdout == ""
+ 
+    - name: Test Neutron Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint list|grep -w neutron || exit 0
+      changed_when: false
+      register: neutron_endpoint
+
+    - name: Create Neutron Public Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} network public http://{{VIRTUALIP_FQDN}}:{{NEUTRON_API_PORT}}
+      when: neutron_endpoint.stdout == ""
+
+    - name: Create Neutron Internal Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} network internal http://{{VIRTUALIP_FQDN}}:{{NEUTRON_API_PORT}}
+      when: neutron_endpoint.stdout == ""
+
+    - name: Create Neutron admin Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} network admin http://{{VIRTUALIP_FQDN}}:{{NEUTRON_API_PORT}}
+      when: neutron_endpoint.stdout == ""
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+  run_once: yes

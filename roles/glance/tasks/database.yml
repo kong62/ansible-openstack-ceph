@@ -1,0 +1,12 @@
+- name: Create GLANCE_DBNAME DATABASE 
+  mysql_db: name={{GLANCE_DBNAME}} state=present login_host=localhost login_port={{MYSQL_PORT}} login_unix_socket=/var/lib/mysql/mysql.sock
+  run_once: yes
+  delegate_to: "{{groups['cloud-database'][0]}}"
+
+- name: GRANT ALL PRIVILEGES for glance service
+  mysql_user: name={{GLANCE_DBUSER}} password={% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{GLANCE_DBPASS}}{% endif %} priv={{GLANCE_DBNAME}}.*:ALL host={{item}} state=present login_host=localhost login_port={{MYSQL_PORT}} login_unix_socket=/var/lib/mysql/mysql.sock
+  loop:
+    - 'localhost'
+    - '%'
+  run_once: yes
+  delegate_to: "{{groups['cloud-database'][0]}}"

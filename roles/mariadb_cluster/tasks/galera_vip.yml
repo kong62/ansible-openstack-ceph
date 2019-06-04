@@ -1,0 +1,8 @@
+- name: Provide galera-monitor to /etc/xinetd.d/galera-monitor
+  template: src=galera-monitor.j2 dest=/etc/xinetd.d/galera-monitor
+
+- name: Provide clustercheck.j2 to /etc/sysconfig/clustercheck
+  template: src=clustercheck.j2 dest=/etc/sysconfig/clustercheck
+
+- name: Start and Enabled xinetd
+  service: name=xinetd state=started enabled=yes

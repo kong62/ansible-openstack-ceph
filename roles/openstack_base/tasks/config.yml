@@ -1,0 +1,7 @@
+- name: Motify repos to aliyun
+  template: src={{item}}.j2 dest=/etc/yum.repos.d/{{item}}
+  loop:
+    - CentOS-Ceph.repo
+    - CentOS-OpenStack.repo
+    - CentOS-QEMU-EV.repo
+  when: ENABLE_LOCAL_YUM_REPOS | bool == false

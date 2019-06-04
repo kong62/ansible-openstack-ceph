@@ -1,0 +1,15 @@
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+{% if inventory_hostname_short == inventory_hostname %}
+{% for i in groups['all'] %}
+{{hostvars[i]['ansible_host']}} {{hostvars[i]['inventory_hostname_short']}}
+{% endfor %}
+{% else %}
+{% for i in groups['all'] %}
+{{hostvars[i]['ansible_host']}} {{hostvars[i]['inventory_hostname_short']}} {{i}}
+{% endfor %}
+{% endif %}
+
+# Create For VIP
+{{VIRTUALIP}} {{VIRTUALIP_FQDN}}

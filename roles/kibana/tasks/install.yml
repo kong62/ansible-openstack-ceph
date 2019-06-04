@@ -1,0 +1,9 @@
+- name: Provide kibana.repo to /etc/yum.repos.d/kibana.repo
+  template: src=kibana.repo.j2 dest=/etc/yum.repos.d/kibana.repo
+  when: ENABLE_LOCAL_YUM_REPOS | bool == false
+
+- name: Install kibana
+  yum: name={{item}}
+  loop:
+    - java
+    - kibana

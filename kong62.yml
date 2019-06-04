@@ -1,0 +1,28 @@
+---
+- name: Init Centos OS Bases
+  hosts: all
+  gather_facts: no
+  vars:
+    - test: [ "nihao", "heihei", "kaka", "good"]
+  roles:
+    #- { role: bond } 
+    #- { role: zabbix_server }
+    #- { role: zabbix_agent }
+    #- { role: influxdb } 
+    #- { role: telegraf } 
+    #- { role: grafana } 
+    #- { role: zabbix_server, when: ENABLE_ZABBIX | bool == true }
+    #- { role: prometheus, when: ENABLE_PROMETHEUS | bool == true }
+    #- { role: elasticsearch, when: ENABLE_ELKSTACK| bool == true }
+    #- { role: kibana, when: ENABLE_ELKSTACK| bool == true }
+    #- { role: logstash, when: ENABLE_ELKSTACK| bool == true }
+    #- { role: base }
+    #- { role: docker, when: ENABLE_DOCKER| bool == true }
+    #- { role: kubeadm_master, when: ENABLE_KUBEADM | bool == true }
+    - { role: vmware_harbor }
+  tasks:
+    #- get_url: url=https://dldir1.qq.com/qqfile/qq/QQ9.0.8/24209/QQ9.0.8.24209.exe dest=/tmp timeout=1000
+    - debug: var=test
+      when: test is defined and test
+
+    - debug: msg={{VMWARE_HARBOR_VERSION.split('/')[-1]}}

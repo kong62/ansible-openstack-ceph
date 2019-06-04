@@ -1,0 +1,3 @@
+- name: Restart neutron-dhcp-agent
+  service: name=neutron-dhcp-agent state=restarted
+  

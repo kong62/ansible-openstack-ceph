@@ -1,0 +1,2 @@
+- name: Install openstack-nova-compute
+  yum: name=openstack-nova-compute state=present

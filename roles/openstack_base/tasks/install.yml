@@ -1,0 +1,9 @@
+#- name: Install centos-release-openstack-{{OPENSTACK_VERSION}}
+#  yum: name={{item}} state=present
+#  loop:
+#    - centos-release-openstack-{{OPENSTACK_VERSION}}
+
+- name: Install openstackclient
+  yum: name={{item}} state=present
+  loop:
+    - python-openstackclient

@@ -1,0 +1,43 @@
+---
+# tasks file for influxdb
+
+- name: Provide influxdb.conf to /etc/influxdb/influxdb.conf
+  template: src=influxdb.conf.j2 dest=/etc/influxdb/influxdb.conf
+  notify:
+    - Restart influxdb
+
+- name: Provide kapacitor.conf to /etc/kapacitor/kapacitor.conf
+  template: src=kapacitor.conf.j2 dest=/etc/kapacitor/kapacitor.conf    
+  notify:
+    - Restart kapacitor
+
+- name: Provide init.sh to /usr/lib/chronograf/scripts/init.sh
+  template: src=init.sh.j2 dest=/usr/lib/chronograf/scripts/init.sh
+  notify:
+    - Restart chronograf
+
+- name: Provide chronograf.service to /usr/lib/chronograf/scripts/chronograf.service
+  template: src=chronograf.service.j2 dest=/usr/lib/chronograf/scripts/chronograf.service
+  notify:
+    - Restart chronograf
+
+- name: Add chronograf datasource
+  template: src=datasources.src.j2 dest=/usr/share/chronograf/resources/datasources.src
+  notify:
+    - Restart chronograf
+
+- name: Provide chronograf.service to /usr/lib/systemd/system/chronograf.service
+  template: src=chronograf.service.j2 dest=/usr/lib/systemd/system/chronograf.service
+  notify:
+    - Restart chronograf
+
+- name: systemctl daemon-reload
+  shell: systemctl daemon-reload
+  changed_when: false
+
+- name: Set influxdb chronograf kapacitor service enable and started
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - influxdb
+    - chronograf
+    - kapacitor

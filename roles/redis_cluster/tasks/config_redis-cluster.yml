@@ -1,0 +1,62 @@
+- name: Disble and Stop Redis Server Service
+  service: name={{item}} state=stopped enabled=false
+  with_items:
+    - redis-server
+    #- redis-sentinel
+
+- name: Make Reids Dirs
+  file: path=/opt/redis/{{item}} state=directory recurse=yes
+  with_items:
+    - redis-6379
+    - redis-6380
+
+- name: Provide redis-4.0.2.gem
+  copy: src=redis-4.0.2.gem dest=/opt/redis/redis-4.0.2.gem
+
+- name: Gem install redis
+  gem: name=redis gem_source=/opt/redis/redis-4.0.2.gem state=present
+
+- name: Copy redis-trib.rb to /opt/reids/redis-trib.rb
+  shell: cp /usr/share/doc/redis-tools/examples/redis-trib.rb /opt/redis/redis-trib.rb
+
+- name: Make Reids conf files
+  template: src={{item}}.j2 dest=/opt/redis/{{item}}/{{item}}.conf
+  with_items:
+    - redis-6379
+    - redis-6380
+    
+- name: Start Redis Server
+  shell: redis-server {{item}}.conf chdir=/opt/redis/{{item}}/
+  with_items:
+    - redis-6379
+    - redis-6380
+   
+- name: Fix ask yes in redis-trib.rb
+  lineinfile: path=/opt/redis/redis-trib.rb regexp='Can I set the above configuration?' line='#yes_or_die "Can I set the above configuration?"'
+  
+- name: Check Redis Cluster Info First
+  shell: /opt/redis/redis-trib.rb check localhost:6379
+  register: CLUSTER_INFO_FIRST
+  delegate_to: "{{groups[ ENVIRONMENT_REGION_NAME + '-controller'][0]}}"
+  run_once: yes
+
+- name: Start Redis Cluster
+  shell: "/opt/redis/redis-trib.rb create --replicas 1 {{groups[ ENVIRONMENT_REGION_NAME + '-controller'][0]}}:6379 {{groups[ ENVIRONMENT_REGION_NAME + '-controller'][0]}}:6380 {{groups[ ENVIRONMENT_REGION_NAME + '-controller'][1]}}:6379 {{groups[ ENVIRONMENT_REGION_NAME + '-controller'][1]}}:6380 {{groups[ ENVIRONMENT_REGION_NAME + '-controller'][2]}}:6379 {{groups[ ENVIRONMENT_REGION_NAME + '-controller'][2]}}:6380"
+  delegate_to: "{{groups[ ENVIRONMENT_REGION_NAME + '-controller'][0]}}"
+  run_once: yes
+  when: CLUSTER_INFO_FIRST.stdout.find("slave") == -1
+
+- name: Set redis-6379 to rc.local
+  lineinfile: path=/etc/rc.local regexp='redis-6379' line='cd /opt/redis/redis-6379 && redis-server redis-6379.conf' insertbefore='exit 0'
+
+- name: Set redis-6380 to rc.local
+  lineinfile: path=/etc/rc.local regexp='redis-6380' line='cd /opt/redis/redis-6380 && redis-server redis-6380.conf' insertbefore='exit 0'
+
+- name: Check Redis Cluster Info
+  shell: "/opt/redis/redis-trib.rb check localhost:6379"
+  delegate_to: "{{groups[ ENVIRONMENT_REGION_NAME + '-controller'][0]}}"
+  run_once: yes
+  register: CLUSTER_INFO  
+
+- name: Debug Redis Cluster Info
+  debug: var=CLUSTER_INFO.stdout_lines

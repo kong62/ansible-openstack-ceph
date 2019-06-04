@@ -1,0 +1,5 @@
+---
+# handlers file for bond
+
+- name: Restart Network
+  service: name=network state=restarted

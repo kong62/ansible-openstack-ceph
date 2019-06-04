@@ -1,0 +1,20 @@
+- name: Provide glance-api.conf to /etc/glance/glance-api.conf
+  template: src=glance-api.conf.j2 dest=/etc/glance/glance-api.conf
+  notify:
+    - Restart openstack-glance-api
+  
+- name: Provide glance-registry.conf to /etc/glance/glance-registry.conf
+  template: src=glance-registry.conf.j2 dest=/etc/glance/glance-registry.conf
+  notify:
+    - Restart openstack-glance-registry
+
+- name: Sync Keystone Database
+  shell: glance-manage db_sync
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+  run_once: yes
+
+- name: Enable and Start openstack-glance-api and openstack-glance-registry
+  service: name={{item}} state=started enabled=yes
+  loop:
+    - openstack-glance-api
+    - openstack-glance-registry

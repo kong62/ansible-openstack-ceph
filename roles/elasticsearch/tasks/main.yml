@@ -1,0 +1,10 @@
+---
+# tasks file for elk
+
+- include: install.yml
+
+- include: config.yml
+
+#- include: head.yml
+
+- meta: flush_handlers

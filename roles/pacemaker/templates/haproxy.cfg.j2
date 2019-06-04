@@ -1,0 +1,276 @@
+global
+  chroot /var/lib/haproxy
+  daemon
+  group haproxy
+  maxconn 4000
+  pidfile /var/run/haproxy.pid
+  user haproxy
+  log 127.0.0.1 local2 info
+  stats socket /var/lib/haproxy/stats
+
+defaults
+  log  global
+  maxconn  4000
+  option  redispatch
+  retries  3
+  timeout  http-request 10s
+  timeout  queue 1m
+  timeout  connect 10s
+  timeout  client 1m
+  timeout  server 1m
+  timeout  check 10s
+
+#  mode      http  
+#  option    httplog  
+#  option    dontlognull  
+#  option    http-server-close  
+#  option forwardfor  except 127.0.0.0/8  
+#  timeout http-keep-alive 10s  
+
+# 开启web haproxy管理页面
+listen admin_stats  
+        stats   enable  
+        bind    {{VIRTUALIP}}:{{HAPROXY_ADMIN_PORT}}               #监听的ip端口号  
+        mode    http                 #开关  
+        option  httplog  
+        log     global  
+        stats   refresh 30s          #统计页面自动刷新时间  
+        stats   uri /haproxy         #访问的uri，ip:{{HAPROXY_ADMIN_PORT}}/haproxy  
+        stats   realm haproxy  
+        stats   auth {{HAPROXY_ADMIN_USER}}:{% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{HAPROXY_ADMIN_PASS}}{% endif %}     #认证用户名和密码  
+        stats   hide-version         #隐藏HAProxy的版本号  
+        stats   admin if TRUE        #如果认证成功了，可通过webui管理节点  
+
+ listen openstack_dashboard_cluster
+  bind {{VIRTUALIP}}:{{HTTPD_PORT}}
+  balance source
+  option tcpka
+  option httpchk
+  option tcplog
+{% for i in groups['cloud-controller'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{HTTPD_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+
+ listen galera_cluster
+  bind {{VIRTUALIP}}:{{MYSQL_PORT}}
+  balance source
+  option mysql-check
+{% if groups['cloud-database'] | count == 1 %}
+{% for i in groups['cloud-database'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{MYSQL_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+{% else %}
+{% for i in groups['cloud-database'] %}
+{% if i == groups['cloud-database'][0] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{MYSQL_PORT}} check port {{GALERA_MONITOR_PORT}} inter 2000 rise 2 fall 5
+{% else %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{MYSQL_PORT}} backup check port {{GALERA_MONITOR_PORT}} inter 2000 rise 2 fall 5
+{% endif %}
+{% endfor %}
+{% endif %}
+
+ listen memcache
+  bind {{VIRTUALIP}}:{{MEMCACHED_PORT}}
+  mode tcp
+  option tcplog
+  log global
+  #default_backend read_only-back
+  #backend read_only-back
+  balance leastconn
+{% for i in groups['cloud-controller'] %}
+{% if i == groups['cloud-controller'][0] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{MEMCACHED_PORT}} weight 100 check agent-check agent-port {{MEMCACHED_PORT}} inter 2000 rise 2 fall 5 on-marked-down shutdown-sessions
+{% else %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{MEMCACHED_PORT}} weight 100 backup check agent-check agent-port {{MEMCACHED_PORT}} inter 2000 rise 2 fall 5 on-marked-down shutdown-sessions
+{% endif %}
+{% endfor %}
+
+ listen rabbitmq
+  bind {{VIRTUALIP}}:{{RABBITMQ_PORT}}
+  mode tcp
+  option tcplog
+  balance roundrobin
+  option clitcpka
+  timeout client 3h
+  timeout server 3h
+  #log global
+  #default_backend read_only-back
+  #backend read_only-back
+  #balance leastconn
+{% if groups['cloud-amqp'] | count == 1 %}
+{% for i in groups['cloud-amqp'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{RABBITMQ_PORT}} weight 100 check inter 2000 rise 2 fall 5
+{% endfor %}
+{% else %}
+{% for i in groups['cloud-amqp'] %}
+{% if i != groups['cloud-amqp'][-1] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{RABBITMQ_PORT}} weight 100 check inter 2000 rise 2 fall 5
+{% else %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{RABBITMQ_PORT}} weight 100 backup check inter 2000 rise 2 fall 5
+{% endif %}
+{% endfor %}
+{% endif %}
+
+ listen rabbitmq_dashboard
+  bind {{VIRTUALIP}}:{{RABBITMQ_MANAGEMENT_PORT}}
+  balance source
+  option tcpka
+  option httpchk
+  option tcplog
+{% for i in groups['cloud-amqp'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{RABBITMQ_MANAGEMENT_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+
+ listen glance_api_cluster
+  bind {{VIRTUALIP}}:{{GLANCE_API_PORT}}
+  balance source
+  option tcpka
+  option httpchk
+  option tcplog
+{% for i in groups['cloud-controller'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{GLANCE_API_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+
+ listen glance_registry_cluster
+  bind {{VIRTUALIP}}:{{GLANCE_REGISTRY_PORT}}
+  balance source
+  option tcpka
+  option tcplog
+{% for i in groups['cloud-controller'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{GLANCE_REGISTRY_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+
+ listen keystone_admin_cluster
+  bind {{VIRTUALIP}}:{{KEYSTONE_ADMIN_PORT}}
+  balance source
+  option tcpka
+  option httpchk
+  option tcplog
+{% for i in groups['cloud-controller'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{KEYSTONE_ADMIN_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+
+ listen keystone_public_internal_cluster
+  bind {{VIRTUALIP}}:{{KEYSTONE_PORT}}
+  balance source
+  option tcpka
+  option httpchk
+  option tcplog
+{% for i in groups['cloud-controller'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{KEYSTONE_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+
+ listen nova_compute_api_cluster
+  bind {{VIRTUALIP}}:{{NOVA_API_PORT}}
+  balance source
+  option tcpka
+  option httpchk
+  option tcplog
+{% for i in groups['cloud-controller'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{NOVA_API_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+
+ listen nova_metadata_api_cluster
+  bind {{VIRTUALIP}}:{{NOVA_METADATA_PORT}}
+  balance source
+  option tcpka
+  option tcplog
+{% for i in groups['cloud-controller'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{NOVA_METADATA_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+
+ listen nova_placement_api_cluster
+  bind {{VIRTUALIP}}:{{PLACEMENT_API_PORT}}
+  balance source
+  option tcpka
+  option tcplog
+{% for i in groups['cloud-controller'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{PLACEMENT_API_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+
+ listen cinder_api_cluster
+  bind {{VIRTUALIP}}:{{CINDER_API_PORT}}
+  balance source
+  option tcpka
+  option httpchk
+  option tcplog
+{% for i in groups['cloud-controller'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{CINDER_API_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+
+ listen nova_vncproxy_cluster
+  bind {{VIRTUALIP}}:{{VNCPROXY_PORT}}
+  balance source
+  option tcpka
+  option tcplog
+{% for i in groups['cloud-controller'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{VNCPROXY_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+
+ listen neutron_api_cluster
+  bind {{VIRTUALIP}}:{{NEUTRON_API_PORT}}
+  balance source
+  option tcpka
+  option httpchk
+  option tcplog
+{% for i in groups['cloud-controller'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{NEUTRON_API_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+
+{% if ENABLE_CEPH | bool == true %}
+ listen ceph_dashboard
+  bind {{VIRTUALIP}}:{{CEPH_MGR_PORT}}
+  balance source
+  option tcpka
+  option httpchk
+  option tcplog
+{% for i in groups['cloud-mon'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{CEPH_MGR_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+{% endif %}
+
+{% if ENABLE_INFLUXDATA | bool == true %}
+ listen influxdb
+  bind {{VIRTUALIP}}:{{INFLUXDB_API_PORT}}
+  mode tcp
+  option tcplog
+  balance roundrobin
+  option clitcpka
+{% for i in groups['cloud-monitor'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{INFLUXDB_API_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+{% endif %}
+
+{% if ENABLE_ELKSTACK | bool == true %}
+ listen elasticsearch
+  bind {{VIRTUALIP}}:{{ELASTICSEARCH_PORT}}
+  mode tcp
+  option tcplog
+  balance roundrobin
+  option clitcpka
+{% for i in groups['cloud-monitor'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{ELASTICSEARCH_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+{% endif %}
+
+{% if ENABLE_ELKSTACK | bool == true %}
+ listen kibana
+  bind {{VIRTUALIP}}:{{KIBANA_PORT}}
+  option tcpka
+  option httpchk
+  option tcplog
+{% for i in groups['cloud-monitor'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{KIBANA_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+{% endif %}
+
+{% if ENABLE_GRAFANA | bool == true %}
+ listen kibana
+  bind {{VIRTUALIP}}:{{GRAFANA_PORT}}
+  option tcpka
+  option httpchk
+  option tcplog
+{% for i in groups['cloud-monitor'] %}
+  server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{GRAFANA_PORT}} check inter 2000 rise 2 fall 5
+{% endfor %}
+{% endif %}

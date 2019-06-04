@@ -1,0 +1,12 @@
+{
+  "id": "10000",
+  "name": "My InfluxDB",
+  "username": "{{ .INFLUXDB_USER }}",
+  "password": "{{ .INFLUXDB_PASS }}",
+  "url": "{{ .INFLUXDB_URL }}",
+  "type": "influx",
+  "insecureSkipVerify": false,
+  "default": true,
+  "telegraf": "telegraf",
+  "organization": "example_org"
+}

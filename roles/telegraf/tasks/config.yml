@@ -1,0 +1,30 @@
+- name: Provide libvirt-collectd
+  copy: src=libvirt-collectd dest=/usr/bin/libvirt-collectd mode=0755
+
+- name: Provide libvirt-collectd.conf
+  template: src=libvirt-collectd.conf.j2 dest=/etc/telegraf/telegraf.d/libvirt-collectd.conf
+  notify:
+    - Restart telegraf
+
+- name: Provide telegraf.conf to /etc/telegraf/telegraf.conf
+  template: src=telegraf.conf.j2 dest=/etc/telegraf/telegraf.conf
+  notify:
+    - Restart telegraf
+
+#- name: Modify telegraf.conf - urls
+#  lineinfile: path=/etc/telegraf/telegraf.conf backrefs=yes regexp='^  \# urls = \["http://127.0.0.1:8086"\]' line='  urls = ["http://{{VIRTUALIP_FQDN}}:{{INFLUXDB_API_PORT}}"]'
+#  notify:
+#    - Restart telegraf
+#
+#- name: Modify telegraf.conf - database
+#  lineinfile: path=/etc/telegraf/telegraf.conf backrefs=yes regexp='^  \# database = "telegraf"' line='  database = "{{ INFLUXDB_DBNAME }}"'
+#  notify:
+#    - Restart telegraf
+#
+#- name: Modfiy telegraf.conf inputs.net
+#  lineinfile: path=/etc/telegraf/telegraf.conf regexp='# \[\[inputs.net\]\]' line='[[inputs.net]]' backrefs=yes
+#  notify:
+#    - Restart telegraf
+
+- name: Set telegraf enable and started
+  service: name=telegraf state=started enabled=yes

@@ -1,0 +1,17 @@
+---
+# handlers file for influxdb
+
+- name: Restart influxdb
+  service: name={{ item }} state=restarted
+  with_items:
+    - influxdb
+
+- name: Restart kapacitor
+  service: name={{ item }} state=restarted
+  with_items:
+    - kapacitor
+
+- name: Restart chronograf
+  service: name={{ item }} state=restarted
+  with_items:
+    - chronograf

@@ -1,0 +1,10 @@
+- name: Enable and Start Redis Server Service
+  service: name={{item}} state=started enabled=yes
+  with_items:
+    - redis-server
+
+- name: Set bind in /etc/redis/redis.conf
+  template: src={{ item }}.conf.j2 dest=/etc/redis/{{ item }}.conf owner=root group=root mode=0644 backup=yes
+  with_items:
+    - redis
+  notify: restart redis-server

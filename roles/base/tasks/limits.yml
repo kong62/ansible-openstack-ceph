@@ -1,0 +1,2 @@
+- name: Set limits
+  template: src=limits.conf.j2 dest=/etc/security/limits.d/limits.conf owner=root group=root mode=0644

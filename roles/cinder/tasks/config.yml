@@ -1,0 +1,16 @@
+- name: Provide cinder.conf to /etc/cinder/cinder.conf
+  template: src=cinder.conf.j2 dest=/etc/cinder/cinder.conf
+  notify:
+    - Restart Openstack Cinder Services
+  
+- name: Sync Cinder Database
+  shell: cinder-manage db sync
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+  run_once: yes
+
+- name: Enable and Start Openstack Cinder Services
+  service: name={{item}} state=started enabled=yes
+  loop:
+    - openstack-cinder-api
+    - openstack-cinder-scheduler
+    - openstack-cinder-backup

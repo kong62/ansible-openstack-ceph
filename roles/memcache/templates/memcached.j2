@@ -1,0 +1,5 @@
+PORT="{{MEMCACHED_PORT}}"
+USER="memcached"
+MAXCONN="8192"
+CACHESIZE="782"
+OPTIONS="-l {{ansible_host}} -t 4 >> /var/log/memcached.log 2>&1"

@@ -1,0 +1,8 @@
+---
+# tasks file for memcache
+
+- include: install.yml
+
+- include: config.yml
+
+- meta: flush_handlers

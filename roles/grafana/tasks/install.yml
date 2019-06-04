@@ -1,0 +1,10 @@
+- name: Provide grafana.repo to /etc/yum.repos.d/grafana.repo
+  copy: src=grafana.repo dest=/etc/yum.repos.d/grafana.repo
+  when: ENABLE_LOCAL_YUM_REPOS | bool == false
+
+- name: Install Grafana
+  yum: name={{item}}
+  loop:
+    - grafana
+    - freetype-demos
+    - freetype-devel

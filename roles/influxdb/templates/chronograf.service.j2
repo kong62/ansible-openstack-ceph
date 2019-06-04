@@ -1,0 +1,23 @@
+# If you modify this, please also make sure to edit init.sh
+
+[Unit]
+Description=Open source monitoring and visualization UI for the entire TICK stack. 
+Documentation="https://www.influxdata.com/time-series-platform/chronograf/"
+After=network-online.target
+
+[Service]
+User=chronograf
+Group=chronograf
+Environment="HOST={{ansible_host}}"
+Environment="PORT={{CHRONOGRAF_PORT}}"
+Environment="BOLT_PATH=/var/lib/chronograf/chronograf-v1.db"
+#Environment="CANNED_PATH=/usr/share/chronograf/canned"
+Environment="RESOURCES_PATH=/usr/share/chronograf/resources"
+Environment="PROTOBOARDS_PATH=/usr/share/chronograf/protoboards"
+EnvironmentFile=-/etc/default/chronograf
+ExecStart=/usr/bin/chronograf $CHRONOGRAF_OPTS
+KillMode=control-group
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

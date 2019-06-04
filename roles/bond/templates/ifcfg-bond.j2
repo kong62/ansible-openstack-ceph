@@ -1,0 +1,8 @@
+DEVICE=bond{{BOND_MODE}}
+BOOTPROTO=none
+ONBOOT=yes
+IPADDR={{BOND_NETWORK.split('.')[0]}}.{{BOND_NETWORK.split('.')[1]}}.{{BOND_NETWORK.split('.')[2]}}.{{ansible_host.split('.')[3]}}
+PREFIX={{BOND_NETWORK.split('/')[1]}}
+USERCTL=no
+NM_CONTROLLED=no 
+TYPE=Ethernet

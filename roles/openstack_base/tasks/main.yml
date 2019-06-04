@@ -1,0 +1,6 @@
+---
+# tasks file for openstack_base
+
+- include: config.yml
+
+- include: install.yml

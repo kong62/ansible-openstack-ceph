@@ -1,0 +1,15 @@
+- name: Mkdir /var/lib/elasticsearch
+  file: path=/var/lib/elasticsearch state=directory recurse=yes owner=elasticsearch group=elasticsearch
+
+- name: Provide elasticsearch.yml to /etc/elasticsearch/elasticsearch.yml
+  template: src=elasticsearch.yml.j2 dest=/etc/elasticsearch/elasticsearch.yml
+  notify:
+    - Restart elasticsearch
+
+- name: Provide jvm.options to /etc/elasticsearch/jvm.options
+  template: src=jvm.options.j2 dest=/etc/elasticsearch/jvm.options
+  notify:
+    - Restart elasticsearch
+
+- name: Start and Enable elasticsearch
+  service: name=elasticsearch state=started enabled=yes

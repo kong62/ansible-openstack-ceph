@@ -1,0 +1,29 @@
+[[outputs.influxdb]]
+{% if groups['cloud-monitor'] | count == 3 %}
+      urls = ["http://{{groups['cloud-monitor'][0]}}:{{INFLUXDB_API_PORT}}", "http://{{groups['cloud-monitor'][1]}}:{{INFLUXDB_API_PORT}}", "http://{{groups['cloud-monitor'][2]}}:{{INFLUXDB_API_PORT}}"]
+{% elif groups['cloud-monitor'] | count == 2 %}
+      urls = ["http://{{groups['cloud-monitor'][0]}}:{{INFLUXDB_API_PORT}}", "http://{{groups['cloud-monitor'][1]}}:{{INFLUXDB_API_PORT}}"]
+{% else %}
+      urls = ["http://{{groups['cloud-monitor'][0]}}:{{INFLUXDB_API_PORT}}"]
+{% endif %}
+      database = "{{INFLUXDB_DBNAME}}" 
+      precision = "6s"
+      timeout = "5s"
+
+[[inputs.exec]]
+      commands = ["/usr/bin/libvirt-collectd"]
+      data_format = "influx"
+      interval = "10s"
+      timeout = "15s"
+
+[[inputs.ceph]]
+  interval = '30s'
+  ceph_binary = "/usr/bin/ceph"
+  socket_dir = "/var/run/ceph"
+  mon_prefix = "ceph-mon"
+  osd_prefix = "ceph-osd"
+  socket_suffix = "asok"
+  ceph_user = "client.admin"
+  ceph_config = "/etc/ceph/ceph.conf"
+  gather_admin_socket_stats = false
+  gather_cluster_stats = true

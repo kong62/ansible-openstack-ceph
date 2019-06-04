@@ -1,0 +1,8 @@
+- name: Install Redis and Ruby
+  apt: name={{item}}
+  with_items:
+    - redis-server
+    - redis-tools
+    #- redis-sentinel
+    - ruby
+    - rubygems

@@ -1,0 +1,6 @@
+---
+- name: Restart mariadb
+  service: name=mariadb state=restarted
+
+- name: Restart crond
+  service: name=crond state=restarted

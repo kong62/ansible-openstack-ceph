@@ -1,0 +1,12 @@
+- name: Create DATABASE NEUTRON_DBNAME
+  mysql_db: name={{NEUTRON_DBNAME}} state=present login_host=localhost login_port={{MYSQL_PORT}} login_unix_socket=/var/lib/mysql/mysql.sock
+  run_once: yes
+  delegate_to: "{{groups['cloud-database'][0]}}"
+
+- name: GRANT ALL PRIVILEGES for NEUTRON_DBUSER on DATABASE NEUTRON_DBNAME
+  mysql_user: name={{NEUTRON_DBUSER}} password={% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{NEUTRON_DBPASS}}{% endif %} priv={{NEUTRON_DBNAME}}.*:ALL host={{item}} state=present login_host=localhost login_port={{MYSQL_PORT}} login_unix_socket=/var/lib/mysql/mysql.sock
+  loop:
+    - 'localhost'
+    - '%'
+  run_once: yes
+  delegate_to: "{{groups['cloud-database'][0]}}"

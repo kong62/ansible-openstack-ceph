@@ -1,0 +1,44 @@
+- name: Provide nova.conf to /etc/nova/nova.conf
+  template: src=nova.conf.j2 dest=/etc/nova/nova.conf
+  notify:
+    - Restart Nova Services
+  
+- name: Provide 00-nova-placement-api.conf to /etc/httpd/conf.d/00-nova-placement-api.conf
+  template: src=00-nova-placement-api.conf.j2 dest=/etc/httpd/conf.d/00-nova-placement-api.conf
+  notify:
+    - Restart httpd
+
+- name: Sync Nova Api Database
+  shell: nova-manage api_db sync
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+  run_once: yes
+
+- name: Sync Nova Cell0 Database
+  shell: nova-manage cell_v2 map_cell0
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+  run_once: yes
+
+- name: Test cell1 cell
+  shell: nova-manage cell_v2 list_cells | grep -w cell1 || exit 0
+  register: cell1_status
+  changed_when: false
+
+- name: Create cell1 cell
+  shell: nova-manage cell_v2 create_cell --name=cell1 --verbose
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+  run_once: yes
+  when: cell1_status.stdout == ""
+
+- name: Sync Nova Database
+  shell: nova-manage db sync
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+  run_once: yes
+
+- name: Enable and Start Nova Services
+  service: name={{item}} state=started enabled=yes
+  loop:
+    - openstack-nova-api
+    - openstack-nova-scheduler
+    - openstack-nova-conductor
+    - openstack-nova-novncproxy
+    - openstack-nova-consoleauth

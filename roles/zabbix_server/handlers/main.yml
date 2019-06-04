@@ -1,0 +1,7 @@
+---
+# handlers file for zabbix_server
+- name: Restart zabbix-server
+  service: name=zabbix-server state=restarted
+
+- name: Restart httpd
+  service: name=httpd state=restarted

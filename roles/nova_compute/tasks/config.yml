@@ -1,0 +1,14 @@
+- name: Test Physical Host or VM
+  shell: lscpu |grep 'Hypervisor vendor' 
+  register: Hypervisor_Vendor
+
+- name: Provide nova.conf to /etc/nova/nova.conf
+  template: src=nova.conf.j2 dest=/etc/nova/nova.conf
+  notify:
+    - Restart Compute Services
+  
+- name: Enable and Start Compute Services
+  service: name={{item}} state=started enabled=yes
+  loop:
+    - libvirtd
+    - openstack-nova-compute

@@ -1,0 +1,13 @@
+- name: Provide influxdb.repo to /etc/yum.repos.d/influxdb.repo
+  copy: src=influxdb.repo dest=/etc/yum.repos.d/influxdb.repo
+  when: ENABLE_LOCAL_YUM_REPOS | bool == false
+
+- name: Install influxdb chronograf And kapacitor
+  yum: name={{item}} state=installed
+  loop:
+    - influxdb
+    - chronograf
+    - kapacitor
+
+- name: Install python influxdb client
+  pip: name=influxdb state=present

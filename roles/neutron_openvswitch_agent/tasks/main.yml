@@ -1,0 +1,9 @@
+---
+
+- include: install.yml
+
+- include: config.yml
+
+- include: ovs_bridge.yml
+
+- meta: flush_handlers

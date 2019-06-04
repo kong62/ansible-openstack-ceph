@@ -1,0 +1,2 @@
+- name: Install ceph Package
+  yum: name=ceph state=present

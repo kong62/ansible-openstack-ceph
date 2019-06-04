@@ -1,0 +1,13 @@
+- name: Mkdir /var/log/kibana/
+  file: path=/var/log/kibana/ state=directory recurse=yes owner=kibana group=kibana
+
+- name: Touch /var/log/kibana/kibana.log
+  file: path=/var/log/kibana/kibana.log state=touch owner=kibana group=kibana
+
+- name: Provide kibana.yml to /etc/kibana/kibana.yml
+  template: src=kibana.yml.j2 dest=/etc/kibana/kibana.yml
+  notify:
+    - Restart kibana
+
+- name: Enable and Start kibana
+  service: name=kibana state=started enabled=yes

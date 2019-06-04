@@ -1,0 +1,12 @@
+- name: Provide neutron.conf to /etc/neutron/neutron.conf
+  template: src=neutron.conf.j2 dest=/etc/neutron/neutron.conf
+  notify:
+    - Restart neutron-metadata-agent
+
+- name: Provide metadata_agent.ini to /etc/neutron/metadata_agent.ini
+  template: src=metadata_agent.ini.j2 dest=/etc/neutron/metadata_agent.ini
+  notify:
+    - Restart neutron-metadata-agent
+
+- name: Enable and Start neutron-metadata-agent
+  service: name=neutron-metadata-agent state=started enabled=yes

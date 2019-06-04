@@ -1,0 +1,8 @@
+- name: Install openstack-neutron-linuxbridge 
+  yum: name={{item}} state=present
+  loop:
+    - openstack-neutron-linuxbridge
+    - ebtables
+    - ipset
+    - tcpdump
+    - bridge-utils

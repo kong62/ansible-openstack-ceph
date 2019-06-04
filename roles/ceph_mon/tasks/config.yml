@@ -1,0 +1,77 @@
+- block:
+    - name: Test /tmp/ceph.mon.keyring
+      stat: path=/tmp/ceph.mon.keyring
+      register: mon_keyring_status
+
+    - name: Create mon keyring
+      shell: sudo -u ceph ceph-authtool --create-keyring /tmp/ceph.mon.keyring --gen-key -n mon. --cap mon 'allow *'
+      when: mon_keyring_status.stat.exists == false
+
+    - name: Test /etc/ceph/ceph.client.admin.keyring
+      stat: path=/etc/ceph/ceph.client.admin.keyring
+      register: admin_keyring_status
+
+    - name: Create admin keyring
+      shell: ceph-authtool --create-keyring /etc/ceph/ceph.client.admin.keyring --gen-key -n client.admin --set-uid=0 --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow *' --cap mgr 'allow *'
+      when: admin_keyring_status.stat.exists == false
+
+    - name: Set mon keyring to admin keyring
+      shell: ceph-authtool /tmp/ceph.mon.keyring --import-keyring /etc/ceph/ceph.client.admin.keyring
+
+    - name: Test /var/lib/ceph/bootstrap-osd/ceph.keyring
+      stat: path=/var/lib/ceph/bootstrap-osd/ceph.keyring
+      register: bootstrap_osd_status
+
+    - name: Create bootstrap-osd keyring
+      shell: sudo -u ceph ceph-authtool --create-keyring /var/lib/ceph/bootstrap-osd/ceph.keyring --gen-key -n client.bootstrap-osd --cap mon 'profile bootstrap-osd'
+      when: bootstrap_osd_status.stat.exists == false
+    
+    - name: Set mon keyring to bootstrap-osd keyring
+      shell: sudo -u ceph ceph-authtool /tmp/ceph.mon.keyring --import-keyring /var/lib/ceph/bootstrap-osd/ceph.keyring
+    
+    - name: Test /tmp/monmap
+      stat: path=/tmp/monmap
+      register: monmap_status
+
+    - name: Delete /tmp/monmap
+      file: path=/tmp/monmap state=absent
+      when: monmap_status.stat.exists == true
+
+    - name: Create mon map
+      shell: "sudo -u ceph monmaptool --create {% for i in groups['cloud-mon'] %} --add {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}} {% endfor %} --fsid a7f64266-0894-4f1e-a635-d0aeaca0e993 /tmp/monmap"
+  run_once: yes
+  delegate_to: "{{groups['cloud-mon'][0]}}"
+
+- block:
+    - name: Sync /etc/ceph/ceph.client.admin.keyring
+      synchronize: src=/etc/ceph/ceph.client.admin.keyring dest=/etc/ceph/ceph.client.admin.keyring mode=push
+    
+    - name: Sync /tmp/ceph.mon.keyring
+      synchronize: src=/tmp/ceph.mon.keyring dest=/tmp/ceph.mon.keyring mode=push
+    
+    - name: Sync /tmp/monmap
+      synchronize: src=/tmp/monmap dest=/tmp/monmap mode=push
+    
+    - name: Sync /var/lib/ceph/bootstrap-osd/ceph.keyring
+      synchronize: src=/var/lib/ceph/bootstrap-osd/ceph.keyring dest=/var/lib/ceph/bootstrap-osd/ceph.keyring mode=push
+  delegate_to: "{{groups['cloud-mon'][0]}}"
+
+- name: Set user and group to ceph for some files
+  file: name={{item}} group=ceph owner=ceph
+  loop:
+    - /tmp/ceph.mon.keyring
+    - /tmp/monmap
+    - /etc/ceph/ceph.client.admin.keyring
+    - /var/lib/ceph/bootstrap-osd/ceph.keyring
+
+- name: Create /var/lib/ceph/mon/ceph-node
+  file: path=/var/lib/ceph/mon/ceph-{{inventory_hostname_short}} state=directory owner=ceph group=ceph
+
+- name: Add keyring and map to mon daemon
+  shell: sudo -u ceph ceph-mon --cluster ceph --mkfs -i {{inventory_hostname_short}} --monmap /tmp/monmap --keyring /tmp/ceph.mon.keyring
+
+- name: Create done
+  file: path=/var/lib/ceph/mon/ceph-{{inventory_hostname_short}}/done owner=ceph group=ceph state=touch
+
+- name: Start and Enable Ceph Mon Service
+  service: name=ceph-mon@{{inventory_hostname_short}} state=started enabled=yes

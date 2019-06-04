@@ -1,0 +1,40 @@
+- block:
+    - name: Create Cinder-backup Keyring
+      shell: ceph auth get-or-create client.cinder-backup mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool={{CEPH_OPENSTACK_POOLS[3]}}' -o /etc/ceph/ceph.client.cinder-backup.keyring
+
+    - name: Create Cinder Keyring
+      shell: ceph auth get-or-create client.cinder mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool={{CEPH_OPENSTACK_POOLS[2]}}, allow rwx pool={{CEPH_OPENSTACK_POOLS[0]}}, allow rwx pool={{CEPH_OPENSTACK_POOLS[1]}}, allow rwx pool={{CEPH_OPENSTACK_POOLS[2]}}_ssd' -o /etc/ceph/ceph.client.cinder.keyring
+
+    - name: Create Glance Keyring
+      shell: ceph auth get-or-create client.glance mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool={{CEPH_OPENSTACK_POOLS[1]}}, allow rwx pool={{CEPH_OPENSTACK_POOLS[0]}}' -o /etc/ceph/ceph.client.glance.keyring
+
+    - name: Modify Permissions For /etc/ceph/ceph.client.glance.keyring
+      file: path=/etc/ceph/ceph.client.glance.keyring
+
+    - name: Modify Permissions For /etc/ceph/ceph.client.cinder.keyring
+      file: path=/etc/ceph/ceph.client.cinder.keyring
+
+    - name: Modify Permissions For /etc/ceph/ceph.client.cinder-backup.keyring
+      file: path=/etc/ceph/ceph.client.cinder-backup.keyring
+
+    - name: Create client.cinder.key
+      shell: ceph auth get-key client.cinder | tee /tmp/client.cinder.key
+  delegate_to: "{{groups['cloud-mon'][0]}}"
+  run_once: yes
+
+- block:
+    - name: Sync /etc/ceph/ceph.conf
+      synchronize: src=/etc/ceph/ceph.conf dest=/etc/ceph/ceph.conf mode=push
+
+    - name: Sync /etc/ceph/ceph.client.glance.keyring
+      synchronize: src=/etc/ceph/ceph.client.glance.keyring dest=/etc/ceph/ceph.client.glance.keyring mode=push
+
+    - name: Sync /etc/ceph/ceph.client.glance.keyring
+      synchronize: src=/etc/ceph/ceph.client.cinder.keyring dest=/etc/ceph/ceph.client.cinder.keyring mode=push
+
+    - name: Sync /etc/ceph/ceph.client.cinder-backup.keyring
+      synchronize: src=/etc/ceph/ceph.client.cinder-backup.keyring dest=/etc/ceph/ceph.client.cinder-backup.keyring mode=push
+
+    - name: Sync /tmp/client.cinder.key
+      synchronize: src=/tmp/client.cinder.key dest=/tmp/client.cinder.key mode=push
+  delegate_to: "{{groups['cloud-mon'][0]}}"

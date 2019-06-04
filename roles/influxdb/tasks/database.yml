@@ -1,0 +1,15 @@
+- name: Create influx database
+  influxdb_database: database_name={{ INFLUXDB_DBNAME }} port={{INFLUXDB_API_PORT}} hostname={{ansible_host}} state=present
+
+- name: Update influx policy
+  influxdb_retention_policy:
+    hostname: "{{ansible_host}}"
+    port: "{{INFLUXDB_API_PORT}}"
+    database_name: "{{ INFLUXDB_DBNAME }}"
+    duration: 30d
+    policy_name: "{{ INFLUXDB_POLICYNAME }}"
+    replication: 1
+    default: true
+
+- name: Drop autogen influx policy on Measurements database
+  shell: influx -host "{{ansible_host}}" -port "{{INFLUXDB_API_PORT}}" -database "{{ INFLUXDB_DBNAME }}" -execute 'drop retention POLICY "autogen" ON "{{ INFLUXDB_DBNAME }}"'

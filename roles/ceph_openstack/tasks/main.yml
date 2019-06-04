@@ -1,0 +1,8 @@
+---
+# tasks file for ceph-openstack
+
+- include: install.yml
+
+- include: config_pool.yml
+
+- include: config_key.yml

@@ -1,0 +1,7 @@
+---
+# handlers file for telegraf
+
+- name: Restart telegraf
+  service: name={{ item }} state=restarted
+  with_items:
+    - telegraf

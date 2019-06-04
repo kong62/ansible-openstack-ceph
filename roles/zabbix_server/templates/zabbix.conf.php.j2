@@ -1,0 +1,27 @@
+<?php
+// Zabbix GUI configuration file.
+global $DB, $HISTORY;
+
+$DB['TYPE']                     = 'MYSQL';
+$DB['SERVER']                   = '{{VIRTUALIP_FQDN}}';
+$DB['PORT']                     = '{{MYSQL_PORT}}';
+$DB['DATABASE']                 = '{{ZABBIX_DBNAME}}';
+$DB['USER']                     = '{{ZABBIX_DBUSER}}';
+$DB['PASSWORD']                 = '{% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{ZABBIX_DBPASS}}{% endif %}';
+
+// Schema name. Used for IBM DB2 and PostgreSQL.
+$DB['SCHEMA']                   = '';
+
+$ZBX_SERVER                     = '{{VIRTUALIP_FQDN}}';
+$ZBX_SERVER_PORT                = '{{ZABBIX_SERVER_PORT}}';
+$ZBX_SERVER_NAME                = '{{VIRTUALIP_FQDN}}';
+$IMAGE_FORMAT_DEFAULT           = IMAGE_FORMAT_PNG;
+
+// Uncomment this block only if you are using Elasticsearch.
+// Elasticsearch url (can be string if same url is used for all types).
+//$HISTORY['url']   = [
+//              'uint' => 'http://localhost:9200',
+//              'text' => 'http://localhost:9200'
+//];
+// Value types stored in Elasticsearch.
+//$HISTORY['types'] = ['uint', 'text'];

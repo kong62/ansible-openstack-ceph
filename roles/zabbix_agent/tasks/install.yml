@@ -1,0 +1,9 @@
+- name: Provide zabbix.repo to /etc/yum.repos.d/zabbix.repo
+  template: src=zabbix.repo dest=/etc/yum.repos.d/zabbix.repo
+  when: ENABLE_LOCAL_YUM_REPOS | bool == false
+
+- name: Install Zabbix Agent
+  yum: name={{item}}
+  loop:
+    - zabbix-agent
+    - zabbix-sender

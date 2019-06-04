@@ -1,0 +1,53 @@
+---
+- name: Test RabbitMQ Cluster Status
+  shell: rabbitmqctl cluster_status | grep running_nodes | awk -F '[' '{print $2}' | awk -F ']' '{print $1}'| awk -F ',' '{print NF}' || exit 0
+  register: RabbitMQ_Cluster_Status
+  run_once: yes
+  delegate_to: "{{groups['cloud-amqp'][-1]}}"
+  changed_when: false
+
+- name: Stop App For Jion Cluster
+  shell: rabbitmqctl stop_app
+  when: inventory_hostname != groups['cloud-amqp'][-1] and RabbitMQ_Cluster_Status.stdout | int == 1
+
+- name: Get {{groups['cloud-amqp'][-1]}} Hostname
+  shell: hostname
+  delegate_to: "{{groups['cloud-amqp'][-1]}}"
+  register: cluster_hostname
+  changed_when: false
+
+- name: Join Rabbitmq Cluster
+  shell: rabbitmqctl join_cluster rabbit@{{cluster_hostname.stdout}} --ram
+  retries: 3
+  delay: 10
+  when: inventory_hostname != groups['cloud-amqp'][-1] and RabbitMQ_Cluster_Status.stdout | int == 1
+
+- name: Start App After Jion Cluster
+  shell: rabbitmqctl start_app
+  when: inventory_hostname != groups['cloud-amqp'][-1] and RabbitMQ_Cluster_Status.stdout | int == 1
+
+- name: Test RabbitMQ Cluster Status Again
+  shell: rabbitmqctl cluster_status || exit 0
+  register: RabbitMQ_Cluster_Status_Again
+  run_once: yes
+  delegate_to: "{{groups['cloud-amqp'][-1]}}"
+  changed_when: false
+
+- name: Debug RabbitMQ Cluster Status Again
+  debug: var=RabbitMQ_Cluster_Status_Again.stdout_lines
+  run_once: yes
+  delegate_to: "{{groups['cloud-amqp'][-1]}}"
+
+- name: Set Rabbitmq Password
+  rabbitmq_user: user={{RABBIT_USER}} password='{% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{RABBIT_PASS}}{% endif %}' force=yes vhost=/ configure_priv=.* read_priv=.* write_priv=.*
+  run_once: true
+  delegate_to: "{{groups['cloud-amqp'][-1]}}"
+
+- name: Set Ha-mode For Rabbitmq_policy
+  rabbitmq_policy: 
+    name: ha-all
+    pattern: '^(?!amq\.).*'
+    tags:
+       ha-mode: all
+  run_once: true
+  delegate_to: "{{groups['cloud-amqp'][-1]}}"

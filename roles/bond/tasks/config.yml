@@ -1,0 +1,39 @@
+- name: Provide Interface One Config For Bond
+  template: src=ifcfg-bond1.j2 dest=/etc/sysconfig/network-scripts/ifcfg-{{BOND_INTERFACES[0]}}
+  notify:
+    - Restart Network
+
+- name: Provide Interface Two Config For Bond
+  template: src=ifcfg-bond2.j2 dest=/etc/sysconfig/network-scripts/ifcfg-{{BOND_INTERFACES[1]}}
+  notify:
+    - Restart Network
+
+- name: Provide Config For Bond
+  template: src=ifcfg-bond.j2 dest=/etc/sysconfig/network-scripts/ifcfg-bond{{BOND_MODE}}
+  notify:
+    - Restart Network
+
+- name: Provide Bonding Config
+  template: src=bonding.conf.j2 dest=/etc/modprobe.d/bonding.conf
+  notify:
+    - Restart Network
+
+- name: Show Bonding Info
+  shell: lsmod | grep bonding || exit 0
+  register: Bonding
+  changed_when: false
+
+- name: Remove Bonding Module
+  shell: "/sbin/rmmod bonding 2>/dev/null"
+  when: Bonding.stdout != ""
+
+- name: Add Bonding Module
+  shell: "/sbin/modprobe bonding 2>/dev/null"
+
+- name: Restart Network
+  service: name=network state=restarted
+
+- name: Prevent network disconnection
+  wait_for: timeout=10
+  delegate_to: localhost
+  run_once: yes

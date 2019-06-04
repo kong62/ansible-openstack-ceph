@@ -1,0 +1,5 @@
+- name: Install openstack-cinder
+  yum: name={{item}} state=present
+  loop:
+    - python-keystone
+    - openstack-cinder

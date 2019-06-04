@@ -1,0 +1,61 @@
+- name: Provide Mariadb Config File to /etc/my.cnf
+  template: src=my.cnf.j2 dest=/etc/my.cnf
+
+- name: Provide Mariadb Config File to /etc/my.cnf.d/mariadb-server.cnf
+  template: src=mariadb-server.cnf.j2 dest=/etc/my.cnf.d/mariadb-server.cnf
+
+- name: Enable and Start mariadb-server
+  service: name=mariadb state=started
+
+- name: Provide Mariadb Config File to /etc/my.cnf.d/galera.cnf
+  template: src=galera.cnf.j2 dest=/etc/my.cnf.d/galera.cnf
+
+- name: Create repl user for DBREPL_USER 
+  mysql_user: name={{ DBREPL_USER}} password='{% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{DBREPL_PASS}}{% endif %}' priv="*.*:ALL,GRANT" host={{item}} login_host=localhost state=present login_port={{MYSQL_PORT}} login_unix_socket=/var/lib/mysql/mysql.sock
+  with_items:
+    - 'localhost'
+    - '%'
+  run_once: yes
+  delegate_to: "{{groups['cloud-database'][0]}}"
+
+- name: Test Galera Cluster Status
+  shell: mysql -e "show status like 'wsrep_%';" | grep wsrep_local_state_comment | awk '{print $2}' || exit 0
+  register: Galera_Cluster_Status
+  run_once: yes
+  delegate_to: "{{groups['cloud-database'][0]}}"
+  changed_when: false
+
+- name: Stop mariadb on Other nodes
+  service: name=mariadb state=stopped
+  when: inventory_hostname != groups['cloud-database'][0] and Galera_Cluster_Status.stdout.find("Synced") == -1
+
+- name: Stop mariadb on First node
+  service: name=mariadb state=stopped
+  when: inventory_hostname == groups['cloud-database'][0] and Galera_Cluster_Status.stdout.find("Synced") == -1
+
+- name: Start mariadb on First node
+  shell: galera_new_cluster
+  when: inventory_hostname == groups['cloud-database'][0] and Galera_Cluster_Status.stdout.find("Synced") == -1
+
+- name: Start mariadb on Other nodes
+  service: name=mariadb state=started
+  when: inventory_hostname != groups['cloud-database'][0] and Galera_Cluster_Status.stdout.find("Synced") == -1
+
+- name: Test Galera Cluster Status Again
+  shell: mysql -e "show status like 'wsrep_%';" | grep wsrep_local_state_comment | awk '{print $2}' || exit 0
+  register: Galera_Cluster_Status_Again
+  when: Galera_Cluster_Status.stdout.find("Synced") == -1
+
+- name: Debug Galera Cluster Status Again
+  debug: var=Galera_Cluster_Status_Again.stdout
+  when: Galera_Cluster_Status.stdout.find("Synced") == -1
+  run_once: yes
+  delegate_to: groups['cloud-database'][0]
+
+- name: Copy galera-check-recovery.sh to /etc/my.cnf.d/galera-check-recovery.sh
+  template: src=galera-check-recovery.sh.j2 dest=/etc/my.cnf.d/galera-check-recovery.sh
+
+- name: Add galera-check-recovery to cron
+  cron: cron_file=/etc/cron.d/galera-check-recovery name="galera-check-recovery" minute="*/1" job="bash /etc/my.cnf.d/galera-check-recovery.sh" user=root
+  notify:
+    - Restart crond

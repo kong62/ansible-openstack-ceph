@@ -1,0 +1,36 @@
+- name: Create Auth For Mgr
+  shell: ceph auth get-or-create mgr.{{inventory_hostname_short}} mon 'allow *' osd 'allow *' mds 'allow *'
+
+- name: Create Mgr Dir
+  file: path=/var/lib/ceph/mgr/ceph-{{inventory_hostname_short}} owner=ceph group=ceph state=directory
+
+- name: Get Mgr Keyring
+  shell: ceph auth get mgr.{{inventory_hostname_short}} -o /var/lib/ceph/mgr/ceph-{{inventory_hostname_short}}/keyring 
+
+- name: Set Mgr Keyring 
+  file: path=/var/lib/ceph/mgr/ceph-{{inventory_hostname_short}}/keyring owner=ceph group=ceph state=file
+
+- name: Test Mgr
+  shell: ps -ef|grep -v grep |grep ceph-mgr || exit 0
+  register: mgr_status
+  changed_when: false
+
+- name: Start Mgr Permission
+  shell: ceph-mgr -i {{inventory_hostname_short}}
+  when: mgr_status.stdout == ""
+
+- name: Enable Mgr Dashboard
+  shell: ceph mgr module enable dashboard
+
+- name: Modify Mgr IP
+  shell: ceph config-key set mgr/dashboard/{{inventory_hostname_short}}/server_addr {{ansible_host}}
+  notify:
+    - Restart Mgr
+
+- name: Modify Mgr Port
+  shell: ceph config-key set mgr/dashboard/{{inventory_hostname_short}}/server_port {{CEPH_MGR_PORT}}
+  notify:
+    - Restart Mgr
+
+- name: Enable And Started Mgr
+  service: name="ceph-mgr@{{inventory_hostname_short}}" state=started enabled=yes

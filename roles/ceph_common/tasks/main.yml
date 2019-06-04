@@ -1,0 +1,6 @@
+---
+# tasks file for ceph-common
+
+- include: install.yml
+
+- include: config.yml

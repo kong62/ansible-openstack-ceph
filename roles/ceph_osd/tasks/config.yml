@@ -1,0 +1,41 @@
+- block:
+    - name: Sync /etc/ceph/ceph.client.admin.keyring to OSD Nodes
+      synchronize: src=/etc/ceph/ceph.client.admin.keyring dest=/etc/ceph/ceph.client.admin.keyring mode=push
+
+    - name: Sync /tmp/ceph.mon.keyring to OSD Nodes
+      synchronize: src=/tmp/ceph.mon.keyring dest=/tmp/ceph.mon.keyring mode=push
+
+    - name: Sync /tmp/monmap to OSD Nodes
+      synchronize: src=/tmp/monmap dest=/tmp/monmap mode=push
+
+    - name: Sync /var/lib/ceph/bootstrap-osd/ceph.keyring to OSD Nodes
+      synchronize: src=/var/lib/ceph/bootstrap-osd/ceph.keyring dest=/var/lib/ceph/bootstrap-osd/ceph.keyring mode=push
+  delegate_to: "{{groups['cloud-mon'][0]}}"
+
+- name: Set user and group to ceph for some files to OSD Nodes
+  file: name={{item}} group=ceph owner=ceph
+  loop:
+    - /tmp/ceph.mon.keyring
+    - /tmp/monmap
+    - /etc/ceph/ceph.client.admin.keyring
+    - /var/lib/ceph/bootstrap-osd/ceph.keyring
+
+- name: List No Label Disks
+  script: find_osd.sh
+  register: no_label_disks
+  changed_when: false
+
+- name: List All Disks
+  debug: var=no_label_disks.stdout_lines
+
+- name: Zap OSDs
+  shell: ceph-volume lvm zap /dev/{{item}}
+  with_items:
+    - "{{no_label_disks.stdout_lines}}"
+  when: no_label_disks.stdout_lines != [""]
+
+- name: Create OSDs
+  shell: ceph-volume lvm create --bluestore --data /dev/{{item}}
+  with_items:
+    - "{{no_label_disks.stdout_lines}}"
+  when: no_label_disks.stdout_lines != [""]

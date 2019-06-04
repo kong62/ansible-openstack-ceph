@@ -1,0 +1,13 @@
+---
+- include: install.yml
+
+- include: config.yml
+  when: groups['cloud-database'] | count == 1
+
+- include: config_cluster.yml
+  when: groups['cloud-database'] | count != 1
+
+- include: galera_vip.yml
+  when: groups['cloud-database'] | count != 1
+
+- meta: flush_handlers

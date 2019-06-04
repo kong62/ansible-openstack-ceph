@@ -1,0 +1,7 @@
+- name: Add Some Modules
+  modprobe: name={{item}} state=present
+  loop:
+    - br_netfilter
+
+- name: Provide br_netfilter.modules to /etc/sysconfig/modules/br_netfilter.modules
+  template: src=br_netfilter.modules.j2 dest=/etc/sysconfig/modules/br_netfilter.modules mode=0777

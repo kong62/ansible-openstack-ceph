@@ -1,0 +1,2 @@
+- name: Fix neutron CLI is deprecated and will be removed in the future. Use openstack CLI instead
+  copy: src={{OPENSTACK_VERSION}}/neutronclient/shell.py dest=/usr/lib/python2.7/site-packages/neutronclient/shell.py

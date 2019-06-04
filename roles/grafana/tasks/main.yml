@@ -1,0 +1,8 @@
+---
+# tasks file for grafana
+
+- include: install.yml
+
+- include: config.yml
+
+- meta: flush_handlers

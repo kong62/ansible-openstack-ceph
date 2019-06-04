@@ -1,0 +1,40 @@
+---
+- name: Enable The rabbitmq_management Plugins
+  rabbitmq_plugin: names=rabbitmq_management state=enabled
+
+- name: Provide rabbitmq-server.service To /usr/lib/systemd/system/rabbitmq-server.service
+  copy: src=rabbitmq-server.service dest=/usr/lib/systemd/system/rabbitmq-server.service
+  register: rabbitmq_service
+
+- name: Run systemctl daemon-reload
+  shell: systemctl daemon-reload
+  when: rabbitmq_service.changed == true 
+
+- name: Provide erlang.cookie To /var/lib/rabbitmq/.erlang.cookie
+  copy: src=".erlang.cookie" dest="/var/lib/rabbitmq/.erlang.cookie" owner=rabbitmq group=rabbitmq mode=400
+
+- name: Provide rabbitmq-env.conf to /etc/rabbitmq/rabbitmq-env.conf
+  template: src=rabbitmq-env.conf.j2 dest=/etc/rabbitmq/rabbitmq-env.conf
+
+- name: Provide rabbitmq.config to /etc/rabbitmq/rabbitmq.config
+  template: src=rabbitmq.config.j2 dest=/etc/rabbitmq/rabbitmq.config
+
+- name: Enable And Start rabbitmq-server
+  service: name=rabbitmq-server state=started enabled=yes
+
+- name: Provide rabbitmqadmin Tool to /usr/sbin/rabbitmqadmin
+  copy: src=rabbitmqadmin dest=/usr/sbin/rabbitmqadmin mode=0755
+
+- name: Test /etc/bash_completion.d/rabbitmqadmin
+  stat: path=/etc/bash_completion.d/rabbitmqadmin
+  register: rabbitmqadmin_bash
+
+- name: Provide rabbitmqadmin Bash_completion To /etc/bash_completion.d/rabbitmqadmin
+  shell: "rabbitmqadmin --bash-completion > /etc/bash_completion.d/rabbitmqadmin"
+  when: rabbitmqadmin_bash.stat.exists != true
+
+- name: Set Rabbitmq Password
+  rabbitmq_user: user={{RABBIT_USER}} password='{% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{RABBIT_PASS}}{% endif %}' force=yes vhost=/ configure_priv=.* read_priv=.* write_priv=.*
+  run_once: true
+  delegate_to: "{{groups['cloud-amqp'][0]}}"
+  when: groups['cloud-amqp'] | count == 1

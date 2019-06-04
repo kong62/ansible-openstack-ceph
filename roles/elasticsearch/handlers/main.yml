@@ -1,0 +1,5 @@
+---
+# handlers file for elk
+
+- name: Restart elasticsearch
+  service: name=elasticsearch state=restarted

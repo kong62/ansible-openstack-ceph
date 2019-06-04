@@ -1,0 +1,10 @@
+---
+# tasks file for influxdb
+
+- include: install.yml
+
+- include: config.yml
+
+- include: database.yml
+
+- meta: flush_handlers

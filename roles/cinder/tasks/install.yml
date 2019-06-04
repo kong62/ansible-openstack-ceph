@@ -1,0 +1,2 @@
+- name: Install openstack-cinder
+  yum: name=openstack-cinder state=present

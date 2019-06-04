@@ -1,0 +1,5 @@
+- name: Motify PS1
+  lineinfile: path=/etc/profile regexp='^PS1=.*' line='PS1="\[\e[37;40m\][\[\e[32;40m\]\u\[\e[37;40m\]@\[\e[33;40m\]\h \[\e[36;40m\]\W\[\e[37;40m\]]\[\e[31;40m\]\\\\$ \[\e[0m\]"'
+
+- name: Disble You have new mail in /var/spool/mail/root
+  lineinfile: path=/etc/profile regexp='unset MAILCHECK' line='unset MAILCHECK'

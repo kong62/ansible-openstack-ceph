@@ -1,0 +1,10 @@
+- name: Provide cinder.conf to /etc/cinder/cinder.conf On Volume Nodes
+  template: src=cinder.conf.j2 dest=/etc/cinder/cinder.conf
+  notify:
+    - Restart Openstack Cinder Volume
+  #when: inventory_hostname not in groups['cloud-controller']
+  
+- name: Enable and Start Openstack Cinder Services
+  service: name={{item}} state=started enabled=yes
+  loop:
+    - openstack-cinder-volume

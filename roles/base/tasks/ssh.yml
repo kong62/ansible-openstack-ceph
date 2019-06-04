@@ -1,0 +1,19 @@
+- name: Provide File To /etc/ssh/sshd_config
+  copy: src=sshd.conf dest=/etc/ssh/sshd_config
+  notify:
+    - Restart sshd
+
+- name: Add publickey to /root/.ssh/authorized_keys
+  authorized_key: user=root key="{{lookup('file', item)}}"
+  with_first_found:
+      - id_rsa.pub
+
+- name: Add publickey to /root/.ssh/
+  copy: src={{ item }} dest=/root/.ssh/ owner=root group=root mode=0644
+  with_first_found:
+      - id_rsa.pub
+
+- name: Add secretkey to /root/.ssh/
+  copy: src={{ item }} dest=/root/.ssh/ owner=root group=root mode=0600
+  with_first_found:
+      - id_rsa

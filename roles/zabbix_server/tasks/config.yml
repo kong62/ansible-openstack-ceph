@@ -1,0 +1,45 @@
+- name: Test Zabbix Database Table For alerts
+  shell: mysql -u{{ZABBIX_DBUSER}} -p{% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{ZABBIX_DBPASS}}{% endif %} -h{{VIRTUALIP_FQDN}} -P{{MYSQL_PORT}} -e 'show tables;' {{ZABBIX_DBNAME}} |grep alerts || exit 0
+  changed_when: false
+  register: zabbix_tables
+
+- name: Importing Zabbix Data
+  shell: zcat /usr/share/doc/zabbix-server-mysql-*/create.sql.gz | mysql -u{{ZABBIX_DBUSER}} -p{% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{ZABBIX_DBPASS}}{% endif %} -h{{VIRTUALIP_FQDN}} -P{{MYSQL_PORT}} {{ZABBIX_DBNAME}}
+  run_once: yes
+  when: zabbix_tables.stdout == ""
+
+- name: Provide zabbix_server.conf to /etc/zabbix/zabbix_server.conf
+  template: src=zabbix_server.conf.j2 dest=/etc/zabbix/zabbix_server.conf
+  notify:
+    - Restart zabbix-server
+
+- name: Provide locales.inc.php to /usr/share/zabbix/include/locales.inc.php
+  copy: src=locales.inc.php dest=/usr/share/zabbix/include/locales.inc.php
+  notify:
+    - Restart zabbix-server
+
+- name: Provide msyh.ttf to /usr/share/zabbix/fonts/msyh.ttf
+  copy: src=msyh.ttf dest=/usr/share/zabbix/fonts/msyh.ttf
+  notify:
+    - Restart zabbix-server
+
+- name: Provide defines.inc.php to /usr/share/zabbix/include/defines.inc.php
+  copy: src=defines.inc.php dest=/usr/share/zabbix/include/defines.inc.php
+  notify:
+    - Restart zabbix-server
+
+- name: Provide zabbix.conf.php to /usr/share/zabbix/conf/zabbix.conf.php
+  template: src=zabbix.conf.php.j2 dest=/usr/share/zabbix/conf/zabbix.conf.php
+  notify:
+    - Restart zabbix-server
+
+- name: Provide zabbix.conf to /etc/httpd/conf.d/zabbix.conf
+  template: src=zabbix.conf.j2 dest=/etc/httpd/conf.d/zabbix.conf
+  notify:
+    - Restart httpd
+
+- name: Start and Enabled zabbix-server and httpd
+  service: name={{item}} state=started enabled=yes
+  loop:
+    - httpd
+    - zabbix-server

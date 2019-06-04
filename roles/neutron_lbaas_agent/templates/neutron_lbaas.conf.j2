@@ -1,0 +1,221 @@
+[DEFAULT]
+
+#
+# From neutron.lbaas
+#
+
+# DEPRECATED: Driver to use for scheduling to a default loadbalancer agent
+# (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#loadbalancer_scheduler_driver = neutron_lbaas.agent_scheduler.ChanceScheduler
+
+# DEPRECATED: Automatically reschedule loadbalancer from offline to online
+# lbaas agents. This is only supported for drivers who use the neutron LBaaSv2
+# agent (boolean value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#allow_automatic_lbaas_agent_failover = false
+
+
+[certificates]
+
+#
+# From neutron.lbaas
+#
+
+# DEPRECATED: Certificate Manager plugin. Defaults to barbican. (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#cert_manager_type = barbican
+
+# DEPRECATED: Name of the Barbican authentication method to use (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#barbican_auth = barbican_acl_auth
+
+# DEPRECATED: Absolute path to the certificate storage directory. Defaults to
+# env[OS_LBAAS_TLS_STORAGE]. (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#storage_path = /var/lib/neutron-lbaas/certificates/
+
+
+[quotas]
+
+#
+# From neutron.lbaas
+#
+
+# DEPRECATED: Number of LoadBalancers allowed per tenant. A negative value
+# means unlimited. (integer value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#quota_loadbalancer = 10
+
+# DEPRECATED: Number of Loadbalancer Listeners allowed per tenant. A negative
+# value means unlimited. (integer value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#quota_listener = -1
+
+# DEPRECATED: Number of pools allowed per tenant. A negative value means
+# unlimited. (integer value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#quota_pool = 10
+
+# DEPRECATED: Number of pool members allowed per tenant. A negative value means
+# unlimited. (integer value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#quota_member = -1
+
+# DEPRECATED: Number of health monitors allowed per tenant. A negative value
+# means unlimited. (integer value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#quota_healthmonitor = -1
+
+
+[service_auth]
+
+#
+# From neutron.lbaas
+#
+
+# DEPRECATED: Authentication endpoint (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#auth_url = <None>
+
+# DEPRECATED: The service admin user name (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#admin_user = admin
+
+# DEPRECATED: The service admin tenant name (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#admin_tenant_name = admin
+
+# DEPRECATED: The service admin password (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#admin_password = password
+
+# DEPRECATED: The admin user domain name (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#admin_user_domain = Default
+
+# DEPRECATED: The admin project domain name (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#admin_project_domain = Default
+
+# DEPRECATED: The deployment region (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#region = RegionOne
+
+# DEPRECATED: The name of the service (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#service_name = lbaas
+
+# DEPRECATED: The auth version used to authenticate (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#auth_version = 3
+
+# DEPRECATED: The endpoint_type to be used (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#endpoint_type = public
+
+# DEPRECATED: Disable server certificate verification (boolean value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#insecure = false
+
+# DEPRECATED: CA certificate file path (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#cafile = <None>
+
+# DEPRECATED: Client certificate cert file path (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#certfile = <None>
+
+# DEPRECATED: Client certificate key file path (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The neutron-lbaas project is now deprecated. See:
+# https://wiki.openstack.org/wiki/Neutron/LBaaS/Deprecation
+#keyfile = <None>
+
+
+[service_providers]
+
+#
+# From neutron.lbaas
+#
+
+# Defines providers for advanced services using the format:
+# <service_type>:<name>:<driver>[:default] (multi valued)
+{% if MECHANISM_DRIVERS == "linuxbridge" %}
+#service_provider =
+{% elif MECHANISM_DRIVERS == "openvswitch" %}
+service_provider = LOADBALANCERV2:Haproxy:neutron_lbaas.drivers.haproxy.plugin_driver.HaproxyOnHostPluginDriver:default
+service_provider = FIREWALL:Iptables:neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver:default
+{% else %}
+#service_provider =
+{% endif %}

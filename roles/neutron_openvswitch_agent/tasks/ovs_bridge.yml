@@ -1,0 +1,41 @@
+- name: Test br-tun Status
+  shell: ovs-vsctl list-br|grep -w br-tun || exit 0
+  register: brtun_status
+  changed_when: false
+
+- name: Create br-tun
+  shell: ovs-vsctl add-br br-tun
+  when: brtun_status.stdout == ""
+
+- name: Test br-ex Status
+  shell: ovs-vsctl list-br|grep -w br-ex || exit 0
+  register: brex_status
+  changed_when: false
+
+- name: Create br-ex
+  shell: ovs-vsctl add-br br-ex
+  when: brex_status.stdout == ""
+
+- name: Test VM_INTERFACE in br-ex Status
+  shell: ovs-vsctl list-ports br-ex|grep -w {{VM_INTERFACE}} || exit 0
+  register: brex_vm_interface_status
+  changed_when: false
+  when: ENABLE_BOND | bool == false
+
+- name: Test BOND_INTERFACE in br-ex Status
+  shell: ovs-vsctl list-ports br-ex|grep -w bond{{BOND_MODE}} || exit 0
+  register: brex_bond_interface_status
+  changed_when: false
+  when: ENABLE_BOND | bool == true
+
+- name: Add VM Network Card in br-ex
+  shell: ovs-vsctl add-port br-ex {{VM_INTERFACE}}
+  when: 
+    - ENABLE_BOND | bool == false
+    - brex_vm_interface_status.stdout == ""
+
+- name: Add Bond Network Card in br-ex
+  shell: ovs-vsctl add-port br-ex bond{{BOND_MODE}}
+  when:
+    - ENABLE_BOND | bool == true
+    - brex_bond_interface_status.stdout == ""

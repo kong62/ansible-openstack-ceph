@@ -1,0 +1,6 @@
+- name: Install keystone and httpd
+  yum: name={{item}} state=present
+  loop:
+    - openstack-keystone
+    - httpd
+    - mod_wsgi

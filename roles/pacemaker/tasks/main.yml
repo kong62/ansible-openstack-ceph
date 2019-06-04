@@ -1,0 +1,7 @@
+---
+
+- include: install.yml
+
+- include: config_cluster.yml
+
+- meta: flush_handlers

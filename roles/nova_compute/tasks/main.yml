@@ -1,0 +1,10 @@
+---
+
+- include: install.yml
+
+- include: secret.yml
+  when: ENABLE_CEPH | bool == true
+
+- include: config.yml
+
+- meta: flush_handlers

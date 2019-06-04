@@ -1,0 +1,17 @@
+---
+- name: Set bind in /etc/redis.conf
+  template: src=redis.conf.j2 dest=/etc/redis.conf owner=root group=root mode=0644 backup=yes
+  notify: Restart redis
+
+- name: Provide redis-master-slave.sh to /etc/redis/redis-master-slave.sh
+  template: src=redis-master-slave.sh.j2 dest=/etc/redis/redis-master-slave.sh
+  when: groups['cloud-controller'] | count > 1
+
+- name: Add redis-master-slave to cron
+  cron: cron_file=/etc/cron.d/redis-master-slave name="redis-master-slave" minute="*/1" job="bash /etc/redis/redis-master-slave.sh" user=root
+  when: groups['cloud-controller'] | count > 1
+  notify:
+    - Restart crond
+
+- name: Set redis Started and Enabled
+  service: name=redis state=started enabled=yes

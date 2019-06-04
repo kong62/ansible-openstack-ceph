@@ -1,0 +1,12 @@
+---
+# tasks file for redis-cluster
+
+- include: install.yml
+
+- include: config.yml
+  when: groups[ENVIRONMENT_REGION_NAME + '-controller'] | count == 1
+
+- include: config_redis-cluster.yml
+  when: groups[ENVIRONMENT_REGION_NAME + '-controller'] | count == 3
+
+- meta: flush_handlers

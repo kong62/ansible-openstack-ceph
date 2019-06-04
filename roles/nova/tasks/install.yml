@@ -1,0 +1,9 @@
+- name: Install Nova
+  yum: name={{item}} state=present
+  loop:
+    - openstack-nova-api
+    - openstack-nova-conductor
+    - openstack-nova-console
+    - openstack-nova-novncproxy
+    - openstack-nova-scheduler
+    - openstack-nova-placement-api

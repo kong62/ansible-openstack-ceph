@@ -1,0 +1,9 @@
+---
+
+- include: install.yml
+
+- include: database.yml
+
+- include: config.yml
+
+- meta: flush_handlers

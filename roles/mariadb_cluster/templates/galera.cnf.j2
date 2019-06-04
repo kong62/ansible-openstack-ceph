@@ -1,0 +1,55 @@
+# This file contains wsrep-related mysqld options. It should be included
+# in the main MySQL configuration file.
+#
+# Options that need to be customized:
+#  - wsrep_provider
+#  - wsrep_cluster_address
+#  - wsrep_sst_auth
+# The rest of defaults should work out of the box.
+
+##
+## mysqld options _MANDATORY_ for correct opration of the cluster
+##
+[mysqld]
+{% if groups['cloud-database'] | count != 1 %}
+character-set-server=utf8
+innodb_file_per_table=1
+skip-name-resolve
+#skip-grant-tables
+binlog_format=ROW
+default-storage-engine=innodb
+innodb_autoinc_lock_mode=2
+bind-address={{ansible_host}}
+port = {{MYSQL_PORT}}
+max_allowed_packet = 500M
+
+wsrep_on=1
+wsrep_provider=/usr/lib64/galera/libgalera_smm.so
+wsrep_cluster_name="my_wsrep_cluster"
+#wsrep_cluster_address="dummy://{% for i in groups['cloud-database'] %}{{i}},{% endfor %}"
+wsrep_cluster_address="gcomm://{% for i in groups['cloud-database'] %}{{i}}:4567{%- if not loop.last -%},{% endif %}{% endfor %}"
+wsrep_node_name="{{inventory_hostname_short}}"
+wsrep_node_address="{{ansible_host}}"
+#wsrep_node_incoming_address="{{ansible_host}}"
+wsrep_slave_threads=1
+#wsrep_certify_nonPK=1
+wsrep_max_ws_rows=131072
+wsrep_max_ws_size=1073741824
+wsrep_debug=0
+wsrep_convert_LOCK_to_trx=0
+wsrep_retry_autocommit=1
+wsrep_auto_increment_control=1
+wsrep_drupal_282555_workaround=0
+wsrep_causal_reads=0
+wsrep_notify_cmd=
+wsrep_sst_method=rsync
+#wsrep_sst_receive_address=
+#wsrep_sst_donor=
+#wsrep_sst_donor_rejects_queries=0
+#wsrep_protocol_version=
+{% if GLOBAL_PASS %}
+wsrep_sst_auth={{DBREPL_USER}}:{{GLOBAL_PASS}}
+{% else %}
+wsrep_sst_auth={{DBREPL_USER}}:{{DBREPL_PASS}}
+{% endif %}
+{% endif %}

@@ -1,0 +1,121 @@
+#!/bin/bash
+
+VIRSH_BIN="sudo $(which virsh)"
+PROG_NAME="libvirt-collectd"
+COLLECTD_DIR="/var/log/telegraf/${PROG_NAME}"
+[ ! -d ${COLLECTD_DIR} ] && mkdir -p ${COLLECTD_DIR}
+[ -e /etc/default/${PROG_NAME} ] && . /etc/default/${PROG_NAME}
+
+
+VM_CPU_USAGE() {
+  VM=$1
+  INFO=$2
+  STATE=$(echo "$INFO" | awk '/State/ {print $NF}')
+  if [ "x${STATE}" == "xrunning" ]; then
+    last_cpu=$(echo "${INFO}" 2>/dev/null | \
+      awk '/CPU/ {if($1=="CPU") {split($NF,t,"s"); v=t[1]}; if($1=="CPU(s):") {c=$NF}} END {print v/c}')
+    [ ! -e ${COLLECTD_DIR}/${VM}.cpu_usage ] && echo ${last_cpu} > ${COLLECTD_DIR}/${VM}.cpu_usage
+    old_cpu=$(cat ${COLLECTD_DIR}/${VM}.cpu_usage 2>/dev/null)
+
+    last_time=$(date -d"$(stat ${COLLECTD_DIR}/${VM}.cpu_usage | awk '/Modify/ {print $2,$3,$4}')" +%s)
+    interval_sec=$(( $(date +%s) - ${last_time} ))
+    [ ${interval_sec} == 0 ] && interval_sec=1
+    cpu_usage=$(echo | awk -v l=${last_cpu} -v o=${old_cpu} -v i=${interval_sec} '
+      {if(l<o) {o=0}; res=(l-o)/i*100; if(res>=100) {res=100}; {printf("%0.2f"),res}}')
+
+    echo ${last_cpu} > ${COLLECTD_DIR}/${VM}.cpu_usage
+  else
+    cpu_usage=0
+  fi
+
+  echo 'vm_performance,uuid='$VM',device=cpu,type=cpu_usage value='$cpu_usage''
+}
+
+
+VM_MEMORY_USAGE() {
+  VM=$1
+  INFO=$2
+  STATE=$(echo "$INFO" | awk '/State/ {print $NF}')
+  if [ "x${STATE}" == "xrunning" ]; then
+    last_mem=$(${VIRSH_BIN} dommemstat ${VM} 2>/dev/null | \
+      awk '{if($1=="actual") {actual=$2}; if($1=="unused") {unused=$2}} END {if (defined unused && defined actual) {print (1-unused/actual)} else {print 0}}')
+    [ ! -e ${COLLECTD_DIR}/${VM}.mem_usage ] && echo ${last_mem} > ${COLLECTD_DIR}/${VM}.mem_usage
+    old_mem=$(cat ${COLLECTD_DIR}/${VM}.mem_usage 2>/dev/null)
+
+    mem_usage=$(echo | awk -v l=${last_mem} -v o=${old_mem} '
+      {if(l<o) {o=0}; res=(l+o)/2*100; if(res>=100) {res=100}; {printf("%0.2f"),res}}')
+
+    echo ${last_mem} > ${COLLECTD_DIR}/${VM}.mem_usage
+  else
+    mem_usage=0
+  fi
+
+  echo 'vm_performance,uuid='$VM',device=mem,type=memory_usage value='$mem_usage''
+}
+
+
+VM_DISK_USAGE() {
+  VM=$1
+  INFO=$2
+  STATE=$(echo "$INFO" | awk '/State/ {print $NF}')
+  disk=$(${VIRSH_BIN} domblklist $VM | awk '$1~"^[svh]d[a-z]+" {print $1}')
+  for i in $disk; do
+    if [ "x${STATE}" == "xrunning" ]; then
+      domblkstat=$(timeout 2 ${VIRSH_BIN} domblkstat $VM $i 2>/dev/null)
+      time=$?
+         if [ "${time}" == "0" ]; then
+           rd_req=$(echo "$domblkstat" | awk '$2=="rd_req" {print $NF}')
+           wr_req=$(echo "$domblkstat" | awk '$2=="wr_req" {print $NF}')
+           rd_bytes=$(echo "$domblkstat" | awk '$2=="rd_bytes" {print $NF}')
+           wr_bytes=$(echo "$domblkstat" | awk '$2=="wr_bytes" {print $NF}')
+                else
+                   rd_req=0
+                   wr_req=0
+                   rd_bytes=0
+                   wr_bytes=0 
+                fi      
+    else
+      rd_req=0
+      wr_req=0
+      rd_bytes=0
+      wr_bytes=0
+    fi
+
+    echo 'vm_performance,uuid='$VM',device=disk,nn='$i',type=read_iops value='$rd_req''
+    echo 'vm_performance,uuid='$VM',device=disk,nn='$i',type=write_iops value='$wr_req''
+    echo 'vm_performance,uuid='$VM',device=disk,nn='$i',type=read_bytes value='$rd_bytes''
+    echo 'vm_performance,uuid='$VM',device=disk,nn='$i',type=write_bytes value='$wr_bytes''
+  done
+}
+
+
+VM_INTERFACE_USAGE() {
+  VM=$1
+  INFO=$2
+  STATE=$(echo "$INFO" | awk '/State/ {print $NF}')
+
+  interface=$(${VIRSH_BIN} domiflist $VM | awk '/^tap/ {print $1}')
+  for i in $interface; do
+    if [ "x${STATE}" == "xrunning" ]; then
+      domifstat=$(${VIRSH_BIN} domifstat $VM $i 2>/dev/null)
+      rx_bytes=$(echo "$domifstat" | awk '$2=="rx_bytes" {print $NF}')
+      tx_bytes=$(echo "$domifstat" | awk '$2=="tx_bytes" {print $NF}')
+    else
+      rx_bytes=0
+      tx_bytes=0
+    fi
+
+    echo 'vm_performance,uuid='$VM',device=interface,nn='$i',type=rx_bytes value='$rx_bytes''
+    echo 'vm_performance,uuid='$VM',device=interface,nn='$i',type=tx_bytes value='$tx_bytes''
+  done
+}
+
+
+VMUUID=$(${VIRSH_BIN} list --all --uuid)
+for vm in $VMUUID; do
+  DOMINFO=$(${VIRSH_BIN} dominfo $vm)
+  VM_CPU_USAGE $vm "${DOMINFO}"
+  VM_MEMORY_USAGE $vm "${DOMINFO}"
+  VM_DISK_USAGE $vm "${DOMINFO}"
+  VM_INTERFACE_USAGE $vm "${DOMINFO}"
+done

@@ -1,0 +1,12 @@
+- name: Provide neutron.conf to /etc/neutron/neutron.conf
+  template: src=neutron.conf.j2 dest=/etc/neutron/neutron.conf
+  notify:
+    - Restart neutron-dhcp-agent
+
+- name: Provide dhcp_agent.ini to /etc/neutron/dhcp_agent.ini
+  template: src=dhcp_agent.ini.j2 dest=/etc/neutron/dhcp_agent.ini
+  notify:
+    - Restart neutron-dhcp-agent
+
+- name: Enable and Start neutron-dhcp-agent
+  service: name=neutron-dhcp-agent state=started enabled=yes

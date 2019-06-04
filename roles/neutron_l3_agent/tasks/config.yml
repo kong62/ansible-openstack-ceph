@@ -1,0 +1,12 @@
+- name: Provide neutron.conf to /etc/neutron/neutron.conf
+  template: src=neutron.conf.j2 dest=/etc/neutron/neutron.conf
+  notify:
+    - Restart neutron-l3-agent
+
+- name: Provide l3_agent.ini to /etc/neutron/l3_agent.ini
+  template: src=l3_agent.ini.j2 dest=/etc/neutron/l3_agent.ini
+  notify:
+    - Restart neutron-l3-agent
+
+- name: Enable and Start neutron-l3-agent
+  service: name=neutron-l3-agent state=started enabled=yes

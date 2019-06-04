@@ -1,0 +1,132 @@
+#!/bin/sh
+
+#which uuid 2>/dev/null | apt-get install uuid -y > /dev/null 2>&1
+rm -rf /tmp/GTID_*
+
+IP1={{groups['cloud-database'][0]}}
+IP2={{groups['cloud-database'][1]}}
+IP3={{groups['cloud-database'][2]}}
+ssh_username=root
+ssh_key=/root/.ssh/id_rsa
+{% if GLOBAL_PASS %}
+galera_username={{DBREPL_USER}}
+galera_password={{GLOBAL_PASS}}
+{% else %}
+galera_username={{DBREPL_USER}}
+galera_password={{DBREPL_PASS}}
+{% endif %}
+STOP_NODES=()
+UUID=cbd4b832-c2ea-11e8-b099-a7295be8637d
+#UUID=$(uuid)
+#UUID=$(uuidgen)
+
+findBootstrapNode(){
+  for host in $(cat /tmp/GTID_${UUID}|grep "\-1"|awk '{print $2}')
+  do
+    VIEW_ID=$(ssh ${ssh_username}@${host} -i ${ssh_key} -o StrictHostKeyChecking=no sudo cat /var/lib/mysql/gvwstate.dat|grep view_id|awk '{print $3}')
+    MY_UUID=$(ssh ${ssh_username}@${host} -i ${ssh_key} -o StrictHostKeyChecking=no sudo cat /var/lib/mysql/gvwstate.dat|grep my_uuid|awk '{print $2}')
+    if [ ${VIEW_ID} = ${MY_UUID} ];then
+       echo ${host}
+       break
+    fi
+  done
+}
+
+# 1. Check mariadb service in every nodes
+for i in ${IP1} ${IP2} ${IP3};
+do
+  FLAG=$(ssh ${ssh_username}@${i} -i ${ssh_key} -o StrictHostKeyChecking=no sudo systemctl status mariadb |grep Active:|grep running|wc -l)
+  if [ "${FLAG}" = "0" ];then
+    echo "[INFO] ${i} is down!"
+    {{'let INDEX=${#STOP_NODES[@]}+1'}}
+    STOP_NODES[INDEX]=${i}
+    seqno=$(ssh ${ssh_username}@${i} -i ${ssh_key} -o StrictHostKeyChecking=no sudo cat /var/lib/mysql/grastate.dat|grep seqno:|awk '{print $2}')
+    echo $seqno" "${i} >> /tmp/GTID_$UUID
+  elif [ "$FLAG" = "1" ];then
+    echo "[INFO] ${i} is up!"
+  else
+    echo "[ERROR] Get the status of ${i} ariadb is error!"
+    exit 127
+  fi
+done
+
+# 2. Recover Galera Cluster
+{{'let CLUSTER_SIZE=3-${#STOP_NODES[@]}'}}
+if [ "${CLUSTER_SIZE}" = "3" ]; then
+  echo "[INFO] Galera is OK!"
+elif [ "$CLUSTER_SIZE" = "2" -o "$CLUSTER_SIZE" = "1" ];then
+  echo "[INFO] One or Two MariaDB nodes is down!"
+  # 2.1 Only start the mariadb service in stopped nodes
+  for node in ${STOP_NODES[@]};
+  do
+    ssh ${ssh_username}@${node} -i ${ssh_key} -o StrictHostKeyChecking=no sudo systemctl start mariadb
+  done
+elif [ "${CLUSTER_SIZE}" = "0" ]; then
+  echo "[INFO] All MariaDB nodes is down!"
+  ABNORMAL_SIZE=$(cat /tmp/GTID_$UUID |grep "\-1"|wc -l)
+  # 2.2 Find the latest state node to bootstrap and start others nodes
+  # 2.2.1 All three nodes are gracefully stopped
+  if [ "$ABNORMAL_SIZE" = "0" ];then
+    BOOTSTARP_NODE=$(cat /tmp/GTID_$UUID|sort -n -r|head -n 1|awk '{print $2}')
+    echo "[INFO] All three nodes are gracefully stopped!"
+  # 2.2.2 All nodes went down without proper shutdown procedure
+  elif [ "$ABNORMAL_SIZE" = "1" ];then
+    BOOTSTARP_NODE=$(cat /tmp/GTID_$UUID|grep "\-1"|awk '{print $2}')
+    echo "[INFO] One node disappear in Galera Cluster! Two nodes are gracefully stopped!"
+  elif [ "$ABNORMAL_SIZE" = "2" ];then
+    echo "[INFO] Two nodes disappear in Galera Cluster! One node is gracefully stopped!"
+    BOOTSTARP_NODE=$(findBootstrapNode)
+  elif [ "$ABNORMAL_SIZE" = "3" ];then
+    echo "[INFO] All nodes went down without proper shutdown procedure!"
+    BOOTSTARP_NODE=$(findBootstrapNode)
+  else
+   echo "[ERROR] No grastate.dat or gvwstate.dat file!"
+   exit 127
+  fi
+  # Recover Galera
+  echo "[INFO] The bootstarp node is:" ${BOOTSTARP_NODE}
+  ssh ${ssh_username}@${BOOTSTARP_NODE} -i ${ssh_key} -o StrictHostKeyChecking=no sudo netstat -ntlp|grep 4567
+  MYSQL_PID=$(ssh ${ssh_username}@${BOOTSTARP_NODE} -i ${ssh_key} -o StrictHostKeyChecking=no sudo netstat -ntlp|grep 4567|awk '{print $7}'|awk -F "/" '{print $1}')
+  echo check MYSQL_PID: ${MYSQL_PID}
+  if [ -n "${MYSQL_PID}" ]
+  then
+    ssh ${ssh_username}@${BOOTSTARP_NODE} -i ${ssh_key} -o StrictHostKeyChecking=no sudo kill -9 ${MYSQL_PID}
+    ssh ${ssh_username}@${BOOTSTARP_NODE} -i ${ssh_key} -o StrictHostKeyChecking=no sudo mv /var/lib/mysql/gvwstate.dat /var/lib/mysql/gvwstate.dat.bak
+    sed -i 's/safe_to_bootstrap: 0/safe_to_bootstrap: 1/g' /var/lib/mysql/grastate.dat
+    ssh ${ssh_username}@${BOOTSTARP_NODE} -i ${ssh_key} -o StrictHostKeyChecking=no sudo galera_new_cluster
+  else
+    sed -i 's/safe_to_bootstrap: 0/safe_to_bootstrap: 1/g' /var/lib/mysql/grastate.dat
+    ssh ${ssh_username}@${BOOTSTARP_NODE} -i ${ssh_key} -o StrictHostKeyChecking=no sudo galera_new_cluster
+  fi
+
+  for i in ${IP1} ${IP2} ${IP3};
+  do
+    if [ "${i}" = ${BOOTSTARP_NODE} ];then
+      echo "[INFO] ${i}'s mariadb service status:"$(ssh ${ssh_username}@${i} -i ${ssh_key} -o StrictHostKeyChecking=no sudo systemctl status mariadb |grep Active:)
+    else
+      echo "[INFO] ${i} start service:"
+      ssh ${ssh_username}@${i} -i ${ssh_key} -o StrictHostKeyChecking=no sudo systemctl start mariadb
+    fi
+  done
+else
+  echo "[ERROR] Recover Galera Cluster is error!"
+  exit 127
+fi
+
+# 3. Check Galera Status
+sleep 5
+WSREP_CLUSTER_SIZE=$(mysql -u${galera_username} -p${galera_password} -e "SHOW STATUS LIKE 'wsrep_cluster_size';"|grep wsrep_cluster_size|awk '{print $2}')
+echo "[INFO] Galera cluster CLUSTER_SIZE:"$WSREP_CLUSTER_SIZE
+if [ "${WSREP_CLUSTER_SIZE}" = "3" ]; then
+  echo "[INFO] Galera Cluster is OK!"
+  exit 0
+elif [ "$WSREP_CLUSTER_SIZE" = "2"  ];then
+  echo "[INFO] One MariaDB nodes is down!"
+  exit 2
+elif [ "$WSREP_CLUSTER_SIZE" = "1"  ];then
+  echo "[INFO] Two MariaDB nodes is down!"
+  exit 1
+else
+  echo "[INFO] All MariaDB nodes is down!"
+  exit 3
+fi

@@ -1,0 +1,16 @@
+- name: Install head
+  yum: name={{item}}
+  loop:
+    - git 
+    - npm 
+    - nodejs 
+    - bzip2
+
+- name: Git Clone git://github.com/mobz/elasticsearch-head.git
+  git: clone=yes repo=git://github.com/mobz/elasticsearch-head.git dest=/usr/local/elasticsearch-head force=yes
+
+- name: npm install -g grunt-cli
+  npm: name=grunt-cli registry='https://registry.npm.taobao.org' global=yes path=/usr/local/elasticsearch-head
+
+- name: Provide Gruntfile.js to /usr/local/elasticsearch-head/Gruntfile.js
+  template: src=Gruntfile.js.j2 dest=/usr/local/elasticsearch-head/Gruntfile.js

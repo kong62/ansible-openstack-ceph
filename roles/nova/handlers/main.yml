@@ -1,0 +1,12 @@
+---
+- name: Restart Nova Services
+  service: name={{item}} state=restarted
+  loop:
+    - openstack-nova-api
+    - openstack-nova-scheduler
+    - openstack-nova-conductor
+    - openstack-nova-novncproxy
+    - openstack-nova-consoleauth
+
+- name: Restart httpd
+  service: name=httpd state=restarted

@@ -1,0 +1,7 @@
+- name: Install pacemaker Packages
+  yum: name={{item}} state=present
+  loop:
+    - pacemaker
+    - pcs
+    - fence-agents-all
+    - haproxy

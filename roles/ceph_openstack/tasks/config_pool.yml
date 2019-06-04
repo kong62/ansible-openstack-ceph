@@ -1,0 +1,11 @@
+- name: Create Pools For Openstack
+  shell: ceph osd pool create {{item}} 32 32
+  with_items: "{{CEPH_OPENSTACK_POOLS}}"
+  delegate_to: "{{groups['cloud-mon'][0]}}"
+  run_once: yes
+
+- name: Set Pools To RBD Application
+  shell: ceph osd pool application enable {{item}} rbd
+  with_items: "{{CEPH_OPENSTACK_POOLS}}"
+  delegate_to: "{{groups['cloud-mon'][0]}}"
+  run_once: yes

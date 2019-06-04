@@ -1,0 +1,4 @@
+---
+# tasks file for ceph-mon
+
+- include: config.yml

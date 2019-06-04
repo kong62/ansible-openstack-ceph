@@ -1,0 +1,27 @@
+---
+# tasks file for base
+
+- include: firewalld.yml
+
+- include: ssh.yml
+
+- include: repos.yml
+
+- include: limits.yml
+
+- include: install.yml
+
+- include: modprobe.yml
+
+- include: sysctl.yml 
+
+- include: config.yml
+
+- include: hosts.yml
+
+- include: ntp.yml
+
+- include: bash_completion.yml
+
+- meta: flush_handlers
+

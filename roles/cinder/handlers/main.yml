@@ -1,0 +1,6 @@
+- name: Restart Openstack Cinder Services
+  service: name={{item}} state=restarted
+  loop:
+    - openstack-cinder-api
+    - openstack-cinder-scheduler
+    - openstack-cinder-backup

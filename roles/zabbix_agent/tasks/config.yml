@@ -1,0 +1,7 @@
+- name: Provide zabbix_agentd.conf to /etc/zabbix/zabbix_agentd.conf
+  template: src=zabbix_agentd.conf dest=/etc/zabbix/zabbix_agentd.conf
+  notify:
+    - Restart zabbix-agent
+
+- name: Start and Enable zabbix-agent
+  service: name=zabbix-agent state=started enabled=yes

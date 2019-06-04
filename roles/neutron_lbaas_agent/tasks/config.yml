@@ -1,0 +1,16 @@
+- name: Provide neutron.conf to /etc/neutron/neutron.conf
+  template: src=neutron.conf.j2 dest=/etc/neutron/neutron.conf
+  notify:
+    - Restart neutron-lbaasv2-agent
+
+- name: Provide neutron_lbaas.conf to /etc/neutron/neutron_lbaas.conf
+  template: src=neutron_lbaas.conf.j2 dest=/etc/neutron/neutron_lbaas.conf
+  notify:
+    - Restart neutron-lbaasv2-agent
+- name: Provide lbaas_agent.ini to /etc/neutron/lbaas_agent.ini 
+  template: src=lbaas_agent.ini dest=/etc/neutron/lbaas_agent.ini
+  notify:
+    - Restart neutron-lbaasv2-agent
+
+- name: Enable and Start neutron-lbaasv2-agent
+  service: name=neutron-lbaasv2-agent state=started enabled=yes

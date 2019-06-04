@@ -1,0 +1,12 @@
+- name: Disable firewalld and NetworkManager
+  service: name={{item}} state=stopped enabled=no
+  with_items:
+    - firewalld
+    - NetworkManager
+
+- name: Disable SELINUX in /etc/selinux/config
+  selinux: conf=/etc/selinux/config state=disabled
+
+- name: Disable SELINUX now
+  shell: setenforce 0 || exit 0
+  changed_when: false

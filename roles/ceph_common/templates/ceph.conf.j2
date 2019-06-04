@@ -1,0 +1,57 @@
+[client]
+rbd_cache = True
+rbd_cache_max_dirty = 201326592
+rbd_cache_max_dirty_age = 1
+rbd_cache_size = 268435456
+rbd_cache_target_dirty = 134217728
+rbd_cache_writethrough_until_flush = True
+
+[global]
+fsid = a7f64266-0894-4f1e-a635-d0aeaca0e993
+mon_initial_members = {% for i in groups['cloud-mon'] %}{{hostvars[i]['inventory_hostname_short']}}{%- if not loop.last -%},{% endif %}{%- if not loop.last -%},{% endif %}{% endfor %}
+
+mon_host = {% for i in groups['cloud-mon'] %}{{hostvars[i]['ansible_host']}}{%- if not loop.last -%},{% endif %}{% endfor %}
+
+public_network = {{CEPH_PUBLIC_NETWORK}}
+cluster_network = {{CEPH_CLUSTER_NETWORK}}
+auth_supported = cephx
+auth_cluster_required = cephx
+auth_service_required = cephx
+auth_client_required = cephx
+osd_journal_size = 1024
+osd_pool_default_size = 3
+osd_pool_default_min_size = 1
+osd_pool_default_pg_num = 32
+osd_pool_default_pgp_num = 32
+osd_crush_chooseleaf_type = 1
+filestore_flusher = flase
+filestore_max_sync_interval = 10
+filestore_xattr_use_omap = True
+journal_aio = True
+mon_max_pg_per_osd = 300
+mon_osd_full_ratio = 0.9
+mon_osd_nearfull_ratio = 0.75
+osd_client_op_priority = 63
+osd_deep_scrub_interval = 1209600
+osd_disk_thread_ioprio_class = idle
+osd_disk_thread_ioprio_priority = 7
+osd_disk_threads = 4
+osd_max_backfills = 1
+osd_max_push_objects = 1
+osd_op_thread_timeout = 30
+osd_op_threads = 8
+osd_recovery_max_active = 1
+osd_recovery_max_single_start = 1
+osd_recovery_op_priority = 1
+osd_recovery_threads = 1
+osd_scrub_begin_hour = 1
+osd_scrub_end_hour = 6
+osd_scrub_load_threshold = 0.5
+mon_osd_down_out_interval = 3600
+mon_osd_down_out_subtree_limit = host
+
+[osd]
+osd journal size = 20480
+osd mkfs options xfs = -f -i size=2048 -n size=65536
+osd mkfs type = xfs
+osd mount options xfs = rw, noatime, inode64, noexec, nodev,nodiratime, nobarrier, logbufs=8, logbsize=256k

@@ -1,0 +1,18 @@
+- name: Set Timezone To Asia/Shanghai
+  timezone: name=Asia/Shanghai
+
+- name: Provide /etc/chrony.conf
+  template: src=chrony.conf.j2 dest=/etc/chrony.conf
+  notify:
+    - Restart chronyd
+
+- name: Enable chronyd service
+  service: name=chronyd state=started enabled=yes
+
+- name: Sync Time On First Node
+  shell: chronyc -a makestep || exit 0
+  when: inventory_hostname == groups['cloud-controller'][0]
+
+- name: Sync Time On Other Nodes
+  shell: chronyc -a makestep || exit 0
+  when: inventory_hostname != groups['cloud-controller'][0]

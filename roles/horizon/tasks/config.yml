@@ -1,0 +1,14 @@
+- name: Provide local_settings
+  template: src=local_settings.j2 dest=/etc/openstack-dashboard/local_settings
+  notify:
+    - Restart httpd and memcache
+
+- name: Provide openstack-dashboard.conf
+  template: src=openstack-dashboard.conf.j2 dest=/etc/httpd/conf.d/openstack-dashboard.conf
+  notify:
+    - Restart httpd and memcache
+
+#- name: Provide httpd.conf
+#  template: src=httpd.conf.j2 dest=/etc/httpd/conf/httpd.conf
+#  notify:
+#    - Restart httpd and memcache

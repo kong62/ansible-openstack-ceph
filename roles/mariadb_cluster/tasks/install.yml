@@ -1,0 +1,13 @@
+- name: Install mariadb-server
+  yum: name={{ item }} state=present
+  loop:
+    - mariadb
+    - mariadb-server
+    - python2-PyMySQL
+
+- name: Install mariadb-server-galera
+  yum: name={{item}} state=present
+  loop:
+    - mariadb-server-galera
+    - xinetd
+  when: groups['cloud-database'] | count != 1

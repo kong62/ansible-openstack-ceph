@@ -1,0 +1,10 @@
+- name: Provide logstash.repo to /etc/yum.repos.d/logstash.repo
+  template: src=logstash.repo.j2 dest=/etc/yum.repos.d/logstash.repo
+  when: ENABLE_LOCAL_YUM_REPOS | bool == false
+
+- name: Install logstash
+  yum: name={{item}}
+  loop:
+    - java
+    - haveged
+    - logstash

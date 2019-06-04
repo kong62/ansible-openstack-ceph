@@ -1,0 +1,17 @@
+- name: Delete Cetnos repos in /etc/yum.repos.d/
+  file: path=/etc/yum.repos.d/{{item}} state=absent
+  with_items:
+    - CentOS-Base.repo
+    - CentOS-CR.repo
+    - CentOS-Debuginfo.repo
+    - CentOS-fasttrack.repo
+    - CentOS-Media.repo
+    - CentOS-Sources.repo
+    - CentOS-Vault.repo
+
+- name: Install aliyun repos
+  copy: src={{item}} dest=/etc/yum.repos.d/{{item}}
+  with_items:
+    - Centos-7.repo
+    - epel-7.repo
+  when: ENABLE_LOCAL_YUM_REPOS | bool == false

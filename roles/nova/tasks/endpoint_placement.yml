@@ -1,0 +1,40 @@
+- block:
+    - name: Test Placement User does it exist
+      shell: . /root/admin-openrc.sh && openstack user list|grep {{PLACEMENT_USER}} || exit 0
+      changed_when: false
+      register: placement_user
+
+    - name: Create Placement User
+      shell: . /root/admin-openrc.sh && openstack user create --domain default --password {% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{PLACEMENT_PASS}}{% endif %} {{PLACEMENT_USER}}
+      when: placement_user.stdout == ""
+
+    - name: Add Placement User to Admin Role
+      shell: . /root/admin-openrc.sh && openstack role add --project service --user {{PLACEMENT_USER}} admin
+
+    - name: Test Placement Service does it exist
+      shell: . /root/admin-openrc.sh && openstack service list|grep placement || exit 0
+      changed_when: false
+      register: placement_service
+
+    - name: Create Placement Service
+      shell: . /root/admin-openrc.sh && openstack service create --name placement --description "Placement API" placement
+      when: placement_service.stdout == ""
+ 
+    - name: Test Placement Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint list|grep placement || exit 0
+      changed_when: false
+      register: placement_endpoint
+
+    - name: Create Placement Public Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} placement public http://{{VIRTUALIP_FQDN}}:{{PLACEMENT_API_PORT}}
+      when: placement_endpoint.stdout == ""
+
+    - name: Create Placement Internal Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} placement internal http://{{VIRTUALIP_FQDN}}:{{PLACEMENT_API_PORT}}
+      when: placement_endpoint.stdout == ""
+
+    - name: Create Placement admin Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} placement admin http://{{VIRTUALIP_FQDN}}:{{PLACEMENT_API_PORT}}
+      when: placement_endpoint.stdout == ""
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+  run_once: yes

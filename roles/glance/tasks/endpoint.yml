@@ -1,0 +1,40 @@
+- block:
+    - name: Test Glance User does it exist
+      shell: . /root/admin-openrc.sh && openstack user list|grep -w {{GLANCE_USER}} || exit 0
+      changed_when: false
+      register: glance_user
+
+    - name: Create Glance User
+      shell: . /root/admin-openrc.sh && openstack user create --domain default --password {% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{GLANCE_PASS}}{% endif %} {{GLANCE_USER}}
+      when: glance_user.stdout == ""
+
+    - name: Add Glance User to Admin Role
+      shell: . /root/admin-openrc.sh && openstack role add --project service --user {{GLANCE_USER}} admin
+
+    - name: Test Glance Service does it exist
+      shell: . /root/admin-openrc.sh && openstack service list|grep -w glance || exit 0
+      changed_when: false
+      register: glance_service
+
+    - name: Create Glance Service
+      shell: . /root/admin-openrc.sh && openstack service create --name glance --description "OpenStack Image" image
+      when: glance_service.stdout == ""
+ 
+    - name: Test Glance Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint list|grep -w glance || exit 0
+      changed_when: false
+      register: glance_endpoint
+
+    - name: Create Glance Public Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} image public http://{{VIRTUALIP_FQDN}}:{{GLANCE_API_PORT}}
+      when: glance_endpoint.stdout == ""
+
+    - name: Create Glance Internal Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} image internal http://{{VIRTUALIP_FQDN}}:{{GLANCE_API_PORT}}
+      when: glance_endpoint.stdout == ""
+
+    - name: Create Glance admin Endpoint
+      shell: . /root/admin-openrc.sh && openstack endpoint create --region {{REGION_NAME}} image admin http://{{VIRTUALIP_FQDN}}:{{GLANCE_API_PORT}}
+      when: glance_endpoint.stdout == ""
+  delegate_to: "{{groups['cloud-controller'][0]}}"
+  run_once: yes

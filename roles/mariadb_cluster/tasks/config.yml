@@ -1,0 +1,22 @@
+- name: Provide Mariadb Config File to /etc/my.cnf
+  template: src=my.cnf.j2 dest=/etc/my.cnf
+
+- name: Provide Mariadb Config File to /etc/my.cnf.d/mariadb-server.cnf
+  template: src=mariadb-server.cnf.j2 dest=/etc/my.cnf.d/mariadb-server.cnf
+
+- name: Provide mariadb.service To /usr/lib/systemd/system/mariadb.service
+  template: src=mariadb.service.j2 dest=/usr/lib/systemd/system/mariadb.service
+  register: mariadb_service
+
+- name: Run systemctl daemon-reload
+  shell: systemctl daemon-reload
+  when: mariadb_service.changed == true
+
+- name: Enable and Start mariadb-server
+  service: name=mariadb state=started enabled=yes
+
+- name: Create repl user for DBREPL_USER 
+  mysql_user: name={{ DBREPL_USER}} password='{% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{DBREPL_PASS}}{% endif %}' priv="*.*:ALL,GRANT" host={{item}} login_host=localhost state=present login_port={{MYSQL_PORT}} login_unix_socket=/var/lib/mysql/mysql.sock
+  loop:
+    - 'localhost'
+    - '%'
