@@ -1,0 +1,12 @@
+---
+scenario:
+  name: debian-8
+platforms:
+  - name: debian-8
+    groups:
+      - cloud-consul
+    image: dokken/debian-8
+    command: /lib/systemd/systemd
+    privileged: True
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro

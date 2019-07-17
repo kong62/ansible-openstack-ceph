@@ -1,7 +1,6 @@
 - name: Install Base Package
   yum: name={{item}} state=present update_cache=yes
   loop:
-  #with_items:
     - bash-completion
     - bash-completion-extras
     - chrony
@@ -13,14 +12,29 @@
     - lsof
     - unzip
     - sysstat
-    - python-pip
+    - python2-pip
+    - python36-pip
     - bridge-utils
     - fping
-    #- git
-    #- fio
+    - fio
     - wget
     - strace
     - curl
     - rsync
     - sshpass
     - telnet
+    - bridge-utils
+    - iproute
+    - psmisc
+    - atop
+    - htop
+    - dstat
+    - iftop
+    - iotop
+    - perf
+    - ebtables
+    - ethtool
+    - nc
+    - smartmontools
+    - ipmitool
+    - ipmiutil

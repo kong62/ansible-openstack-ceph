@@ -1,0 +1,110 @@
+[testgroup:children]
+new
+harbors
+masters
+nodes
+lbs
+etcds
+dockers
+nginx
+mysql
+redis
+vsftp
+jenkins
+cloud-consul
+
+[k8s:children]
+masters
+nodes
+
+[dockers:children]
+masters
+nodes
+harbors
+
+[lbs:children]
+masters
+
+[etcds:children]
+masters
+
+[harbors]
+Sit-Test-50.offline.hupu.com ansible_host=10.64.57.71
+
+[masters]
+Sit-Test-39.offline.hupu.com ansible_host=10.64.57.72
+Sit-Test-47.offline.hupu.com ansible_host=10.64.57.68
+Sit-Test-45.offline.hupu.com ansible_host=10.64.57.66
+
+[nodes]
+Sit-Test-40.offline.hupu.com ansible_host=10.64.57.61
+Sit-Test-41.offline.hupu.com ansible_host=10.64.57.62
+Sit-Test-42.offline.hupu.com ansible_host=10.64.57.63
+Sit-Test-44.offline.hupu.com ansible_host=10.64.57.65
+Sit-Test-46.offline.hupu.com ansible_host=10.64.57.67
+Sit-Test-43.offline.hupu.com ansible_host=10.64.57.64
+Sit-Test-48.offline.hupu.com ansible_host=10.64.57.69
+Sit-Test-49.offline.hupu.com ansible_host=10.64.57.70
+
+[nginx]
+Sit-Test-06.offline.hupu.com ansible_host=10.64.57.46
+Sit-Test-07.offline.hupu.com ansible_host=10.64.57.47
+
+[mysql]
+Sit-Test-01.offline.hupu.com ansible_host=10.64.57.41
+Sit-Test-20.offline.hupu.com ansible_host=10.64.57.40
+
+[redis]
+Sit-Test-02.offline.hupu.com ansible_host=10.64.57.42
+Sit-Test-03.offline.hupu.com ansible_host=10.64.57.43
+Sit-Test-04.offline.hupu.com ansible_host=10.64.57.44
+Sit-Test-05.offline.hupu.com ansible_host=10.64.57.45
+
+[vsftp]
+Sit-Test-11.offline.hupu.com ansible_host=10.64.57.22
+
+[jenkins]
+Sit-Test-08.offline.hupu.com ansible_host=10.64.57.48
+Sit-Test-09.offline.hupu.com ansible_host=10.64.57.34
+Sit-Test-10.offline.hupu.com ansible_host=10.64.57.35
+Sit-Test-12.offline.hupu.com ansible_host=10.64.57.24
+Sit-Test-13.offline.hupu.com ansible_host=10.64.57.25
+Sit-Test-14.offline.hupu.com ansible_host=10.64.57.26
+Sit-Test-15.offline.hupu.com ansible_host=10.64.57.27
+Sit-Test-16.offline.hupu.com ansible_host=10.64.57.36
+Sit-Test-17.offline.hupu.com ansible_host=10.64.57.37
+Sit-Test-18.offline.hupu.com ansible_host=10.64.57.38
+Sit-Test-19.offline.hupu.com ansible_host=10.64.57.39
+Sit-Test-21.offline.hupu.com ansible_host=10.64.56.255
+Sit-Test-22.offline.hupu.com ansible_host=10.64.57.23
+Sit-Test-23.offline.hupu.com ansible_host=10.64.57.28
+Sit-Test-24.offline.hupu.com ansible_host=10.64.57.29
+Sit-Test-25.offline.hupu.com ansible_host=10.64.57.30
+Sit-Test-26.offline.hupu.com ansible_host=10.64.57.31
+Sit-Test-27.offline.hupu.com ansible_host=10.64.57.32
+Sit-Test-28.offline.hupu.com ansible_host=10.64.57.33
+Sit-Test-29.offline.hupu.com ansible_host=10.64.57.50
+Sit-Test-30.offline.hupu.com ansible_host=10.64.57.51
+Sit-Test-31.offline.hupu.com ansible_host=10.64.57.52
+Sit-Test-32.offline.hupu.com ansible_host=10.64.57.53
+Sit-Test-33.offline.hupu.com ansible_host=10.64.57.54
+Sit-Test-34.offline.hupu.com ansible_host=10.64.57.55
+Sit-Test-35.offline.hupu.com ansible_host=10.64.57.56
+Sit-Test-36.offline.hupu.com ansible_host=10.64.57.57
+Sit-Test-37.offline.hupu.com ansible_host=10.64.57.58
+Sit-Test-38.offline.hupu.com ansible_host=10.64.57.59
+
+[new]
+CICD-TEST-01.offline.hupu.com ansible_host=10.64.57.0
+Sit-Test-52.offline.hupu.com ansible_host=10.64.57.80
+Sit-Test-51.offline.hupu.com ansible_host=10.64.57.17
+
+[cloud-consul]
+Sit-Test-02.offline.hupu.com ansible_host=10.64.57.42 consul_node_role=server consul_bootstrap_expect=true
+Sit-Test-03.offline.hupu.com ansible_host=10.64.57.43 consul_node_role=server consul_bootstrap_expect=true
+Sit-Test-04.offline.hupu.com ansible_host=10.64.57.44 consul_node_role=server consul_bootstrap_expect=true
+Sit-Test-05.offline.hupu.com ansible_host=10.64.57.45 consul_node_role=client
+ 
+[testgroup:vars]
+ansible_ssh_user=root
+ansible_ssh_pass=root@1234

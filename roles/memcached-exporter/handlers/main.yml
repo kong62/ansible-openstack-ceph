@@ -1,0 +1,13 @@
+---
+
+- name: reenable memcached exporter service
+  systemd:
+    daemon_reload: true
+
+- name: reinit memcached exporter
+  command: initctl reload-configuration
+
+- name: restart memcached exporter
+  service:
+    name: memcached-exporter
+    state: restarted

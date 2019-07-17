@@ -4,7 +4,7 @@
   delegate_to: "{{item}}"
   with_items:
     - localhost
-    - "{{groups['redis']}}"
+    - "{{groups['cloud-redis']}}"
 
 - block:
     - name: Test redis_exporter Package
@@ -22,7 +22,7 @@
       retries: 5
       delay: 2
       check_mode: false
-      when: redis_exporter_pack.stat.exists == False and LOCAL_PACKET_ENABLE | bool == false 
+      when: redis_exporter_pack.stat.exists == False and ENABLE_LOCAL_PACKETS | bool == false 
 
     - name: redis_exporter | extract
       unarchive:

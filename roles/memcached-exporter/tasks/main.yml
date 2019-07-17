@@ -1,0 +1,93 @@
+---
+- name: Mkidr /opt/download/memcached_exporter
+  file: path=/opt/download/memcached_exporter state=directory recurse=yes
+  run_once: true
+  delegate_to: "{{item}}"
+  with_items:
+    - localhost
+    - "{{groups['cloud-memcache']}}"
+
+- block:
+    - name: Test memcached_exporter Package
+      stat: path=/opt/download/memcached_exporter/{{ prometheus_memcached_exporter_release_name }}.tar.gz
+      register: memcached_exporter_pack
+      changed_when: false
+
+    - name: Download memcached_exporter binary to local folder
+      become: false
+      get_url:
+        url: "{{url}}"
+        dest: "/opt/download/memcached_exporter/{{ prometheus_memcached_exporter_release_name }}.tar.gz"
+      register: _download_binary
+      until: _download_binary is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+      when: memcached_exporter_pack.stat.exists == False and ENABLE_LOCAL_PACKETS | bool == false 
+
+    - name: memcached_exporter | extract
+      unarchive:
+        src: "/opt/download/memcached_exporter/{{ prometheus_memcached_exporter_release_name }}.tar.gz"
+        dest: "/opt/download/memcached_exporter"
+        #creates: "{{ prometheus_exporters_common_dist_dir }}/{{ prometheus_memcached_exporter_release_name }}/memcached_exporter"
+        #remote_src: yes
+      #register: prometheus_memcached_exporter_updated
+  run_once: yes
+  delegate_to: localhost
+
+- name: memcached_exporter | copy binary
+  copy:
+    src: "/opt/download/memcached_exporter/{{ prometheus_memcached_exporter_release_name }}/memcached_exporter"
+    dest: "/usr/local/bin/memcached_exporter"
+    #owner: "root"
+    #group: "root"
+    #remote_src: yes
+    mode: 0755
+
+- name: create systemd service unit
+  template:
+    src: memcached-exporter.service.j2
+    dest: /usr/lib/systemd/system/memcached-exporter.service
+    #owner: root
+    #group: root
+    #mode: 0644
+  when: service_mgr | default(ansible_service_mgr) == 'systemd'
+  notify:
+    - reenable memcached exporter service
+    - restart memcached exporter
+
+- name: Looking which version of upstart is install
+  command: initctl version
+  when: service_mgr | default(ansible_service_mgr) == 'upstart'
+  register: upstart_version
+
+- name: create init service unit
+  template:
+    src: memcached-exporter.conf.j2
+    dest: /etc/init/memcached-exporter.conf
+    #owner: root
+    #group: root
+    #mode: 0644
+  when: service_mgr | default(ansible_service_mgr) == 'upstart'
+  notify:
+    - reinit memcached exporter
+    - restart memcached exporter
+
+- name: create sysvinit service unit
+  template:
+    src: memcached-exporter.j2
+    dest: /etc/init.d/memcached-exporter
+    #owner: root
+    #group: root
+    #mode: 0755
+  when: service_mgr | default(ansible_service_mgr) in [ 'sysvinit', 'service' ]
+  notify:
+    - restart memcached exporter
+
+- meta: flush_handlers
+
+- name: ensure prometheus memcached exporter service is enabled and started
+  service:
+    name: memcached-exporter
+    state: started
+    enabled: true

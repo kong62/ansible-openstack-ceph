@@ -4,7 +4,7 @@
   delegate_to: "{{item}}"
   with_items:
     - localhost
-    - "{{groups['cloud-monitors']}}"
+    - "{{groups['cloud-monitor']}}"
 
 - block:
     - name: Test Grafana Package

@@ -1,0 +1,15 @@
+[Unit]
+Description=Prometheus memcached Exporter
+After=network.target
+
+[Service]
+Type=simple
+#User={{ prometheus_exporters_common_user }}
+#Group={{ prometheus_exporters_common_group }}
+ExecStart=/usr/local/bin/memcached_exporter {% for flag, flag_value in prometheus_memcached_exporter_config_flags.items() %}--{{ flag }}={{ flag_value }} {% endfor %}
+
+SyslogIdentifier=prometheus_memcached_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

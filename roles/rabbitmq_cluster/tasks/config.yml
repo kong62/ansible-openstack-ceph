@@ -36,5 +36,5 @@
 - name: Set Rabbitmq Password
   rabbitmq_user: user={{RABBIT_USER}} password='{% if GLOBAL_PASS %}{{GLOBAL_PASS}}{% else %}{{RABBIT_PASS}}{% endif %}' force=yes vhost=/ configure_priv=.* read_priv=.* write_priv=.*
   run_once: true
-  delegate_to: "{{groups['cloud-amqp'][0]}}"
-  when: groups['cloud-amqp'] | count == 1
+  delegate_to: "{{groups['cloud-ampq'][0]}}"
+  when: groups['cloud-ampq'] | count == 1

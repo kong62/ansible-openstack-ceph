@@ -5,6 +5,6 @@
 - include: config.yml
 
 - include: config_cluster.yml
-  when: groups['cloud-amqp'] | count != 1
+  when: groups['cloud-ampq'] | count != 1
 
 - meta: flush_handlers

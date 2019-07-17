@@ -14,6 +14,12 @@
   roles:
     - { role: base }
     - { role: bond, when: ENABLE_BOND | bool == true }
+
+
+- name: Init Centos OpenStack Bases
+  hosts: all
+  gather_facts: no
+  roles:
     - { role: openstack_base }
 
 
@@ -49,13 +55,31 @@
     - { role: ceph_openstack, when: ENABLE_CEPH | bool == true }
 
 
-- name: Install Memcache Mariadb Rabbitmq Keystone Glance Neutron On Controller Nodes
-  hosts: cloud-controller
+- name: Install Memcache
+  hosts: cloud-memcache
   gather_facts: no
   roles:
     - { role: memcache, when: ENABLE_OPENSTACK | bool == true  and ENABLE_MEMCACHED | bool == true }
+
+
+- name: Install Mariadb
+  hosts: cloud-database
+  gather_facts: no
+  roles:
     - { role: mariadb_cluster, when: ENABLE_OPENSTACK | bool == true  and ENABLE_MYSQL | bool == true }
+
+
+- name: Install Rabbitmq
+  hosts: cloud-ampq
+  gather_facts: no
+  roles:
     - { role: rabbitmq_cluster, when: ENABLE_OPENSTACK | bool == true  and ENABLE_RABBITMQ | bool == true }
+
+
+- name: Install Keystone Glance Neutron On Controller Nodes
+  hosts: cloud-controller
+  gather_facts: no
+  roles:
     - { role: keystone, when: ENABLE_OPENSTACK | bool == true  and ENABLE_KEYSTONE | bool == true }
     - { role: glance, when: ENABLE_OPENSTACK | bool == true  and ENABLE_GLANCE | bool == true }
     - { role: neutron, when: ENABLE_OPENSTACK | bool == true  and ENABLE_NEUTRON | bool == true }
@@ -122,7 +146,7 @@
 
 
 - name: Deploy Zabbix Server
-  hosts: cloud-monitors
+  hosts: cloud-monitor
   roles:
     - { role: zabbix_server, when: ENABLE_ZABBIX | bool == true }
 
@@ -134,7 +158,7 @@
 
 
 - name: Deploy influxdb chronograf kapacitor
-  hosts: "cloud-monitors"
+  hosts: "cloud-monitor"
   gather_facts: no 
   roles:
     - { role: influxdb, when: ENABLE_INFLUXDATA | bool == true }
@@ -148,47 +172,64 @@
 
 
 - name: Deploy grafana
-  hosts: "cloud-monitors"
+  hosts: "cloud-monitor"
   gather_facts: no
   roles:
     - { role: grafana, when: ENABLE_GRAFANA | bool == true }
 
 
 - name: Deploy prometheus
-  hosts: "cloud-monitors"
+  hosts: "cloud-monitor"
   gather_facts: yes
   roles:
     - { role: prometheus, when: ENABLE_PROMETHEUS | bool == true }
 
 
+- name: Deploy consul
+  hosts: "cloud-consul"
+  gather_facts: true
+  roles:
+    - { role: consul, when: CONSUL_ENABLED | bool == true }
+
+
 - name: Deploy node-exporter on all nodes exclude k8s groups
-  hosts: "all:!k8s"
+  #hosts: "all:!k8s"
+  hosts: "all"
   gather_facts: true
   roles:
     - { role: node-exporter, when: NODE_EXPORTER_ENABLED }
 
 
 - name: Deploy mysqld-exporter on all mysql nodes
-  hosts: "mysql"
+  hosts: "cloud-database"
   gather_facts: true
   roles:
     - { role: mysqld-exporter, when: MYSQLD_EXPORTER_ENABLED }
 
+
 - name: Deploy redis-exporter on all redis nodes
-  hosts: "redis"
+  hosts: "cloud-redis"
   gather_facts: true
   roles:
     - { role: redis-exporter, when: REDIS_EXPORTER_ENABLED }
 
+
 - name: Deploy haproxy-exporter on all haproxy nodes
-  hosts: "lbs"
+  hosts: "cloud-loadbalance"
   gather_facts: true
   roles:
     - { role: haproxy-exporter, when: HAPROXY_EXPORTER_ENABLED }
 
 
+- name: Deploy memcached-exporter on all memcache nodes
+  hosts: "cloud-memcache"
+  gather_facts: true
+  roles:
+    - { role: memcached-exporter, when: MEMCACHED_EXPORTER_ENABLED }
+
+
 - name: Deploy ELK
-  hosts: "cloud-monitors"
+  hosts: "cloud-monitor"
   gather_facts: no
   roles:
     - { role: elasticsearch, when: ENABLE_ELKSTACK| bool == true }

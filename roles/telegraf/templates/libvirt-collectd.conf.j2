@@ -1,10 +1,10 @@
 [[outputs.influxdb]]
-{% if groups['cloud-monitors'] | count == 3 %}
-      urls = ["http://{{groups['cloud-monitors'][0]}}:{{INFLUXDB_API_PORT}}", "http://{{groups['cloud-monitors'][1]}}:{{INFLUXDB_API_PORT}}", "http://{{groups['cloud-monitors'][2]}}:{{INFLUXDB_API_PORT}}"]
-{% elif groups['cloud-monitors'] | count == 2 %}
-      urls = ["http://{{groups['cloud-monitors'][0]}}:{{INFLUXDB_API_PORT}}", "http://{{groups['cloud-monitors'][1]}}:{{INFLUXDB_API_PORT}}"]
+{% if groups['cloud-monitor'] | count == 3 %}
+      urls = ["http://{{groups['cloud-monitor'][0]}}:{{INFLUXDB_API_PORT}}", "http://{{groups['cloud-monitor'][1]}}:{{INFLUXDB_API_PORT}}", "http://{{groups['cloud-monitor'][2]}}:{{INFLUXDB_API_PORT}}"]
+{% elif groups['cloud-monitor'] | count == 2 %}
+      urls = ["http://{{groups['cloud-monitor'][0]}}:{{INFLUXDB_API_PORT}}", "http://{{groups['cloud-monitor'][1]}}:{{INFLUXDB_API_PORT}}"]
 {% else %}
-      urls = ["http://{{groups['cloud-monitors'][0]}}:{{INFLUXDB_API_PORT}}"]
+      urls = ["http://{{groups['cloud-monitor'][0]}}:{{INFLUXDB_API_PORT}}"]
 {% endif %}
       database = "{{INFLUXDB_DBNAME}}" 
       precision = "6s"

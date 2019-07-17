@@ -1,0 +1,3 @@
+---
+
+url: "{% if prometheus_memcached_exporter_url is not defined %}https://github.com/prometheus/memcached_exporter/releases/download/v{{ prometheus_memcached_exporter_version }}/{{ prometheus_memcached_exporter_release_name }}.tar.gz{% else %}{{ prometheus_memcached_exporter_url }}{% endif %}"

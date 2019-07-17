@@ -97,13 +97,13 @@ listen admin_stats
   #default_backend read_only-back
   #backend read_only-back
   #balance leastconn
-{% if groups['cloud-amqp'] | count == 1 %}
-{% for i in groups['cloud-amqp'] %}
+{% if groups['cloud-ampq'] | count == 1 %}
+{% for i in groups['cloud-ampq'] %}
   server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{RABBITMQ_PORT}} weight 100 check inter 2000 rise 2 fall 5
 {% endfor %}
 {% else %}
-{% for i in groups['cloud-amqp'] %}
-{% if i != groups['cloud-amqp'][-1] %}
+{% for i in groups['cloud-ampq'] %}
+{% if i != groups['cloud-ampq'][-1] %}
   server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{RABBITMQ_PORT}} weight 100 check inter 2000 rise 2 fall 5
 {% else %}
   server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{RABBITMQ_PORT}} weight 100 backup check inter 2000 rise 2 fall 5
@@ -117,7 +117,7 @@ listen admin_stats
   option tcpka
   option httpchk
   option tcplog
-{% for i in groups['cloud-amqp'] %}
+{% for i in groups['cloud-ampq'] %}
   server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{RABBITMQ_MANAGEMENT_PORT}} check inter 2000 rise 2 fall 5
 {% endfor %}
 
@@ -236,7 +236,7 @@ listen admin_stats
   option tcplog
   balance roundrobin
   option clitcpka
-{% for i in groups['cloud-monitors'] %}
+{% for i in groups['cloud-monitor'] %}
   server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{INFLUXDB_API_PORT}} check inter 2000 rise 2 fall 5
 {% endfor %}
 {% endif %}
@@ -248,7 +248,7 @@ listen admin_stats
   option tcplog
   balance roundrobin
   option clitcpka
-{% for i in groups['cloud-monitors'] %}
+{% for i in groups['cloud-monitor'] %}
   server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{ELASTICSEARCH_PORT}} check inter 2000 rise 2 fall 5
 {% endfor %}
 {% endif %}
@@ -259,7 +259,7 @@ listen admin_stats
   option tcpka
   option httpchk
   option tcplog
-{% for i in groups['cloud-monitors'] %}
+{% for i in groups['cloud-monitor'] %}
   server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{KIBANA_PORT}} check inter 2000 rise 2 fall 5
 {% endfor %}
 {% endif %}
@@ -270,7 +270,7 @@ listen admin_stats
   option tcpka
   option httpchk
   option tcplog
-{% for i in groups['cloud-monitors'] %}
+{% for i in groups['cloud-monitor'] %}
   server {{hostvars[i]['inventory_hostname_short']}} {{hostvars[i]['ansible_host']}}:{{GRAFANA_PORT}} check inter 2000 rise 2 fall 5
 {% endfor %}
 {% endif %}

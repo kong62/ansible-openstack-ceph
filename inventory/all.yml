@@ -8,17 +8,15 @@ cloud01.kong62.com ansible_host=10.62.10.61
 cloud02.kong62.com ansible_host=10.62.10.62
 cloud03.kong62.com ansible_host=10.62.10.63
 
-[cloud-storage]
-cloud01.kong62.com ansible_host=10.62.10.61
-cloud02.kong62.com ansible_host=10.62.10.62
-cloud03.kong62.com ansible_host=10.62.10.63
+[cloud-storage:children]
+cloud-controller
 
 [cloud-compute]
 cloud01.kong62.com ansible_host=10.62.10.61
 cloud02.kong62.com ansible_host=10.62.10.62
 cloud03.kong62.com ansible_host=10.62.10.63
 cloud04.kong62.com ansible_host=10.62.10.64
-#cloud05.kong62.com ansible_host=10.62.10.65
+cloud05.kong62.com ansible_host=10.62.10.65
 
 [cloud-loadbalance]
 cloud01.kong62.com ansible_host=10.62.10.61
@@ -30,7 +28,10 @@ cloud01.kong62.com ansible_host=10.62.10.61
 cloud02.kong62.com ansible_host=10.62.10.62
 cloud03.kong62.com ansible_host=10.62.10.63
 
-[cloud-amqp]
+[cloud-memcache:children]
+cloud-controller
+
+[cloud-ampq]
 cloud01.kong62.com ansible_host=10.62.10.61
 cloud02.kong62.com ansible_host=10.62.10.62
 cloud03.kong62.com ansible_host=10.62.10.63
@@ -45,12 +46,24 @@ cloud01.kong62.com ansible_host=10.62.10.61
 cloud02.kong62.com ansible_host=10.62.10.62
 cloud03.kong62.com ansible_host=10.62.10.63
 cloud04.kong62.com ansible_host=10.62.10.64
-#cloud05.kong62.com ansible_host=10.62.10.65
+cloud05.kong62.com ansible_host=10.62.10.65
 
-[cloud-monitors]
+[cloud-monitor]
 cloud01.kong62.com ansible_host=10.62.10.61
 cloud02.kong62.com ansible_host=10.62.10.62
 cloud03.kong62.com ansible_host=10.62.10.63
+
+[cloud-redis]
+Sit-Test-02.offline.hupu.com ansible_host=10.64.57.42
+Sit-Test-03.offline.hupu.com ansible_host=10.64.57.43
+Sit-Test-04.offline.hupu.com ansible_host=10.64.57.44
+Sit-Test-05.offline.hupu.com ansible_host=10.64.57.45
+
+[cloud-consul]
+Sit-Test-02.offline.hupu.com ansible_host=10.64.57.42 consul_node_role=server consul_bootstrap_expect=true
+Sit-Test-03.offline.hupu.com ansible_host=10.64.57.43 consul_node_role=server consul_bootstrap_expect=true
+Sit-Test-04.offline.hupu.com ansible_host=10.64.57.44 consul_node_role=server consul_bootstrap_expect=true
+Sit-Test-05.offline.hupu.com ansible_host=10.64.57.45 consul_node_role=client
 
 [domain:children]
 cloud-controller
@@ -59,10 +72,13 @@ cloud-compute
 cloud-storage
 cloud-loadbalance
 cloud-database
-cloud-amqp
+cloud-memcache
+cloud-ampq
 cloud-mon
 cloud-osd
-cloud-monitors
+cloud-monitor
+cloud-redis
+cloud-consul
 
 [domain:vars]
 ansible_user=root

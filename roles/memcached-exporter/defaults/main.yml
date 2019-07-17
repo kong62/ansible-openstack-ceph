@@ -1,0 +1,9 @@
+---
+prometheus_memcached_exporter_version: "{{ MEMCACHED_EXPORTER_VERSION | default('0.5.0') }}"
+prometheus_memcached_exporter_release_name: "memcached_exporter-{{ prometheus_memcached_exporter_version }}.linux-amd64"
+prometheus_memcached_exporter_config_flags:
+  'web.listen-address': '0.0.0.0:{{MEMCACHED_EXPORTER_PORT}}'
+  'log.level': 'info'
+  'memcached.address': 'localhost:{{MEMCACHED_PORT}}'
+prometheus_exporters_common_user: prometheus
+prometheus_exporters_common_group: prometheus

@@ -29,7 +29,7 @@
   delegate_to: "{{item}}"
   with_items:
     - localhost
-    - "{{groups['lbs']}}"
+    - "{{groups['cloud-loadbalance']}}"
 
 - block:
     - name: Test haproxy_exporter Package
@@ -48,7 +48,7 @@
       retries: 5
       delay: 2
       check_mode: false
-      when: haproxy_exporter_pack.stat.exists == False and LOCAL_PACKET_ENABLE | bool == false
+      when: haproxy_exporter_pack.stat.exists == False and ENABLE_LOCAL_PACKETS | bool == false
 
     - name: unarchive haproxy_exporter binary
       unarchive:
