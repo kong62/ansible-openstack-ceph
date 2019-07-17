@@ -1,0 +1,24 @@
+- name: Mkidr /opt/download/grafana
+  file: path=/opt/download/grafana state=directory recurse=yes
+  run_once: true
+  delegate_to: "{{item}}"
+  with_items:
+    - localhost
+    - "{{groups['cloud-monitors']}}"
+
+- block:
+    - name: Test Grafana Package
+      stat: path=/opt/download/grafana/{{GRAFANA_VERSION.split('/')[-1]}}
+      register: grafana_pack
+
+    - name: Download Grafana Package
+      get_url: url={{GRAFANA_VERSION}} dest=/opt/download/grafana/{{GRAFANA_VERSION.split('/')[-1]}} timeout=1000
+      when: grafana_pack.stat.exists == False and ENABLE_LOCAL_PACKETS | bool == false
+  run_once: yes
+  delegate_to: localhost
+
+- name: Copy Grafana Package to All Cloud Monitors
+  copy: src=/opt/download/grafana/{{GRAFANA_VERSION.split('/')[-1]}} dest=/opt/download/grafana/{{GRAFANA_VERSION.split('/')[-1]}}
+
+- name: Install Grafana Package
+  yum: name=/opt/download/grafana/{{GRAFANA_VERSION.split('/')[-1]}} state=installed

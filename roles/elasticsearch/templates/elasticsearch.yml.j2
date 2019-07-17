@@ -65,14 +65,14 @@ http.port: {{ELASTICSEARCH_PORT}}
 # Pass an initial list of hosts to perform discovery when new node is started:
 # The default list of hosts is ["127.0.0.1", "[::1]"]
 #
-discovery.zen.ping.unicast.hosts: [{% for i in groups['cloud-monitor'] %}"{{i}}"{%- if not loop.last -%},{% endif %}{% endfor %}]
+discovery.zen.ping.unicast.hosts: [{% for i in groups['cloud-monitors'] %}"{{i}}"{%- if not loop.last -%},{% endif %}{% endfor %}]
 #
 # Prevent the "split brain" by configuring the majority of nodes (total number of master-eligible nodes / 2 + 1):
 #
-{% if groups['cloud-monitor'] | count <= 2 %}
+{% if groups['cloud-monitors'] | count <= 2 %}
 discovery.zen.minimum_master_nodes: 1
 {% else %}
-discovery.zen.minimum_master_nodes: {{ groups['cloud-monitor'] | count + 1 }}
+discovery.zen.minimum_master_nodes: {{ groups['cloud-monitors'] | count + 1 }}
 {% endif %}
 #
 # For more information, consult the zen discovery module documentation.
@@ -101,5 +101,5 @@ http.cors.allow-origin: "*"
 node.data: true
 ode.master: true
 index.number_of_shards: 5
-index.number_of_replicas: {{ groups['cloud-monitor'] | count }}
+index.number_of_replicas: {{ groups['cloud-monitors'] | count }}
 transport.tcp.compress: true

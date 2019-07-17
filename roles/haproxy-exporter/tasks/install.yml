@@ -1,0 +1,104 @@
+---
+- name: create haproxy_exporter group
+  become: true
+  group:
+    name: "{{ haproxy_exporter_system_group }}"
+    state: present
+    system: true
+
+- name: create haproxy_exporter user
+  become: true
+  user:
+    name: "{{ haproxy_exporter_system_user }}"
+    groups: "{{ haproxy_exporter_system_group }}"
+    append: true
+    createhome: false
+    shell: /usr/sbin/nologin
+    state: present
+    system: true
+
+- name: ensure tar is installed
+  become: true
+  package:
+    name: tar
+    state: present
+
+- name: Mkidr /opt/download/haproxy_exporter
+  file: path=/opt/download/haproxy_exporter state=directory recurse=yes
+  run_once: true
+  delegate_to: "{{item}}"
+  with_items:
+    - localhost
+    - "{{groups['lbs']}}"
+
+- block:
+    - name: Test haproxy_exporter Package
+      stat: path=/opt/download/haproxy_exporter/haproxy_exporter-{{ HAPROXY_EXPORTER_VERSION }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}.tar.gz
+      register: haproxy_exporter_pack
+      changed_when: false
+
+    - name: Download haproxy_exporter binary to local folder
+      become: false
+      get_url:
+        url: "https://github.com/prometheus/haproxy_exporter/releases/download/v{{ HAPROXY_EXPORTER_VERSION }}/haproxy_exporter-{{ HAPROXY_EXPORTER_VERSION }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}.tar.gz"
+        dest: "/opt/download/haproxy_exporter/haproxy_exporter-{{ HAPROXY_EXPORTER_VERSION }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}.tar.gz"
+        checksum: "sha256:{{ __haproxy_exporter_checksum }}"
+      register: _download_binary
+      until: _download_binary is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+      when: haproxy_exporter_pack.stat.exists == False and LOCAL_PACKET_ENABLE | bool == false
+
+    - name: unarchive haproxy_exporter binary
+      unarchive:
+        src: "/opt/download/haproxy_exporter/haproxy_exporter-{{ HAPROXY_EXPORTER_VERSION }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}.tar.gz"
+        dest: /opt/download/haproxy_exporter
+        creates: "/opt/download/haproxy_exporter/haproxy_exporter-{{ HAPROXY_EXPORTER_VERSION }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}/haproxy_exporter"
+        #remote_src: yes
+      check_mode: False
+  run_once: yes
+  delegate_to: localhost
+
+- name: propagate haproxy_exporter binary
+  become: true
+  copy:
+    src: "/opt/download/haproxy_exporter/haproxy_exporter-{{ HAPROXY_EXPORTER_VERSION }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}/haproxy_exporter"
+    dest: "{{ haproxy_exporter_bin_dir}}/haproxy_exporter"
+    mode: 0750
+    owner: "{{ haproxy_exporter_system_user }}"
+    group: "{{ haproxy_exporter_system_group }}"
+  notify: restart haproxy_exporter
+
+- name: copy haproxy_exporter systemd service file
+  become: true
+  template:
+    src: haproxy_exporter.service.j2
+    dest: /usr/lib/systemd/system/haproxy_exporter.service
+    owner: root
+    group: root
+    mode: 0644
+  # Prevent Ansible from displaying password
+  #no_log: true
+  notify: restart haproxy_exporter
+
+- name: ensure haproxy_exporter is enabled
+  become: true
+  systemd:
+    daemon_reload: true
+    name: haproxy_exporter
+    enabled: yes
+    state: started
+
+- name: curl haproxy-exporter metrics
+  uri:
+    url: http://localhost:9101/metrics
+    return_content: yes
+  register: metrics
+  check_mode: no
+
+- name: fail when haproxy-exporter unable to collect metrics
+  fail:
+    msg: "The Haproxy Server Down!! But Install Finished"
+  #failed_when: false
+  when: "'haproxy_up 1' not in metrics.content"

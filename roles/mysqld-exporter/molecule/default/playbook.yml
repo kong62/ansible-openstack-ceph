@@ -1,0 +1,8 @@
+---
+- hosts: all
+  any_errors_fatal: true
+  roles:
+    - ansible-mysqld-exporter
+  vars:
+    MYSQLD_EXPORTER_DSN: "root@(localhost:3306)/"
+    mysqld_exporter_web_listen_address: "127.0.0.1:9104"

@@ -1,4 +1,13 @@
 ---
+- name: Install Some Packets on Ansible Server
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Install Packets
+      yum: name={{item}} state=installed
+      with_items:
+        - sshpass
+
 - name: Init Centos OS Bases
   hosts: all
   gather_facts: no
@@ -113,7 +122,7 @@
 
 
 - name: Deploy Zabbix Server
-  hosts: cloud-monitor
+  hosts: cloud-monitors
   roles:
     - { role: zabbix_server, when: ENABLE_ZABBIX | bool == true }
 
@@ -125,7 +134,7 @@
 
 
 - name: Deploy influxdb chronograf kapacitor
-  hosts: "cloud-monitor"
+  hosts: "cloud-monitors"
   gather_facts: no 
   roles:
     - { role: influxdb, when: ENABLE_INFLUXDATA | bool == true }
@@ -139,21 +148,47 @@
 
 
 - name: Deploy grafana
-  hosts: "cloud-monitor"
+  hosts: "cloud-monitors"
   gather_facts: no
   roles:
     - { role: grafana, when: ENABLE_GRAFANA | bool == true }
 
 
 - name: Deploy prometheus
-  hosts: "cloud-monitor"
+  hosts: "cloud-monitors"
   gather_facts: yes
   roles:
     - { role: prometheus, when: ENABLE_PROMETHEUS | bool == true }
 
 
+- name: Deploy node-exporter on all nodes exclude k8s groups
+  hosts: "all:!k8s"
+  gather_facts: true
+  roles:
+    - { role: node-exporter, when: NODE_EXPORTER_ENABLED }
+
+
+- name: Deploy mysqld-exporter on all mysql nodes
+  hosts: "mysql"
+  gather_facts: true
+  roles:
+    - { role: mysqld-exporter, when: MYSQLD_EXPORTER_ENABLED }
+
+- name: Deploy redis-exporter on all redis nodes
+  hosts: "redis"
+  gather_facts: true
+  roles:
+    - { role: redis-exporter, when: REDIS_EXPORTER_ENABLED }
+
+- name: Deploy haproxy-exporter on all haproxy nodes
+  hosts: "lbs"
+  gather_facts: true
+  roles:
+    - { role: haproxy-exporter, when: HAPROXY_EXPORTER_ENABLED }
+
+
 - name: Deploy ELK
-  hosts: "cloud-monitor"
+  hosts: "cloud-monitors"
   gather_facts: no
   roles:
     - { role: elasticsearch, when: ENABLE_ELKSTACK| bool == true }

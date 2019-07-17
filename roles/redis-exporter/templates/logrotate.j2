@@ -1,0 +1,10 @@
+{{ redis_exporter_log_path }} {
+  hourly
+  missingok
+  notifempty
+  copytruncate
+  su root
+  size 32M
+  compress
+  rotate 3
+}

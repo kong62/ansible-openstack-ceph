@@ -1,0 +1,29 @@
+#!/bin/sh
+
+HOSTNAME=$(hostname)
+USER="eastwood"
+BIN="/usr/local/bin/redis_exporter"
+ARGS="{{ redis_exporter_args }}"
+LOG={{ redis_exporter_log_path }}
+
+case "$1" in
+ start)
+   nohup su ${USER} -c "${BIN} ${ARGS}" >${LOG} 2>&1 &
+   ;;
+ stop)
+   su ${USER} -c "fuser -k 9121/tcp"
+   ;;
+ restart)
+   $0 stop
+   sleep 3
+   $0 start
+   ;;
+ *)
+   echo "Usage: $0 {start|stop|restart}" >&2
+   exit 3
+   ;;
+esac
+
+
+
+

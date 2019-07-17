@@ -1,0 +1,6 @@
+---
+haproxy_exporter_bin_dir: "/usr/local/bin"
+haproxy_exporter_scrape_uri: "unix:/var/run/haproxy-admin.sock"
+haproxy_exporter_ssl_verify: False
+haproxy_exporter_system_group: "haproxy"
+haproxy_exporter_system_user: "haproxy-exp"

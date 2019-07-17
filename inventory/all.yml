@@ -1,76 +1,56 @@
 [cloud-controller]
 cloud01.kong62.com ansible_host=10.62.10.61
-#cloud02.kong62.com ansible_host=10.62.10.62
-#cloud03.kong62.com ansible_host=10.62.10.63
+cloud02.kong62.com ansible_host=10.62.10.62
+cloud03.kong62.com ansible_host=10.62.10.63
 
 [cloud-network]
 cloud01.kong62.com ansible_host=10.62.10.61
-#cloud02.kong62.com ansible_host=10.62.10.62
-#cloud03.kong62.com ansible_host=10.62.10.63
+cloud02.kong62.com ansible_host=10.62.10.62
+cloud03.kong62.com ansible_host=10.62.10.63
 
 [cloud-storage]
 cloud01.kong62.com ansible_host=10.62.10.61
-#cloud02.kong62.com ansible_host=10.62.10.62
-#cloud03.kong62.com ansible_host=10.62.10.63
+cloud02.kong62.com ansible_host=10.62.10.62
+cloud03.kong62.com ansible_host=10.62.10.63
 
 [cloud-compute]
 cloud01.kong62.com ansible_host=10.62.10.61
-#cloud02.kong62.com ansible_host=10.62.10.62
-#cloud03.kong62.com ansible_host=10.62.10.63
-#cloud04.kong62.com ansible_host=10.62.10.64
+cloud02.kong62.com ansible_host=10.62.10.62
+cloud03.kong62.com ansible_host=10.62.10.63
+cloud04.kong62.com ansible_host=10.62.10.64
 #cloud05.kong62.com ansible_host=10.62.10.65
 
 [cloud-loadbalance]
 cloud01.kong62.com ansible_host=10.62.10.61
-#cloud02.kong62.com ansible_host=10.62.10.62
-#cloud03.kong62.com ansible_host=10.62.10.63
+cloud02.kong62.com ansible_host=10.62.10.62
+cloud03.kong62.com ansible_host=10.62.10.63
 
 [cloud-database]
 cloud01.kong62.com ansible_host=10.62.10.61
-#cloud02.kong62.com ansible_host=10.62.10.62
-#cloud03.kong62.com ansible_host=10.62.10.63
+cloud02.kong62.com ansible_host=10.62.10.62
+cloud03.kong62.com ansible_host=10.62.10.63
 
 [cloud-amqp]
 cloud01.kong62.com ansible_host=10.62.10.61
-#cloud02.kong62.com ansible_host=10.62.10.62
-#cloud03.kong62.com ansible_host=10.62.10.63
+cloud02.kong62.com ansible_host=10.62.10.62
+cloud03.kong62.com ansible_host=10.62.10.63
 
 [cloud-mon]
 cloud01.kong62.com ansible_host=10.62.10.61
-#cloud02.kong62.com ansible_host=10.62.10.62
-#cloud03.kong62.com ansible_host=10.62.10.63
+cloud02.kong62.com ansible_host=10.62.10.62
+cloud03.kong62.com ansible_host=10.62.10.63
 
 [cloud-osd]
 cloud01.kong62.com ansible_host=10.62.10.61
-#cloud02.kong62.com ansible_host=10.62.10.62
-#cloud03.kong62.com ansible_host=10.62.10.63
-#cloud04.kong62.com ansible_host=10.62.10.64
+cloud02.kong62.com ansible_host=10.62.10.62
+cloud03.kong62.com ansible_host=10.62.10.63
+cloud04.kong62.com ansible_host=10.62.10.64
 #cloud05.kong62.com ansible_host=10.62.10.65
 
-[cloud-monitor]
-cloud01.kong62.com ansible_host=10.62.10.61
-#cloud02.kong62.com ansible_host=10.62.10.62
-#cloud03.kong62.com ansible_host=10.62.10.63
-
-[cloud-docker]
+[cloud-monitors]
 cloud01.kong62.com ansible_host=10.62.10.61
 cloud02.kong62.com ansible_host=10.62.10.62
-#cloud03.kong62.com ansible_host=10.62.10.63
-
-[cloud-harbor]
-cloud01.kong62.com ansible_host=10.62.10.61
-cloud02.kong62.com ansible_host=10.62.10.62
-#cloud03.kong62.com ansible_host=10.62.10.63
-
-[cloud-kubemaster]
-cloud01.kong62.com ansible_host=10.62.10.61
-#cloud02.kong62.com ansible_host=10.62.10.62
-#cloud03.kong62.com ansible_host=10.62.10.63
-
-[cloud-kubenode]
-cloud01.kong62.com ansible_host=10.62.10.61
-cloud02.kong62.com ansible_host=10.62.10.62
-#cloud03.kong62.com ansible_host=10.62.10.63
+cloud03.kong62.com ansible_host=10.62.10.63
 
 [domain:children]
 cloud-controller
@@ -82,7 +62,7 @@ cloud-database
 cloud-amqp
 cloud-mon
 cloud-osd
-cloud-monitor
+cloud-monitors
 
 [domain:vars]
 ansible_user=root

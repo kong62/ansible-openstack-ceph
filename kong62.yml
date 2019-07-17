@@ -1,6 +1,6 @@
 ---
 - name: Init Centos OS Bases
-  hosts: all
+  hosts: "cloud-monitors"
   gather_facts: no
   vars:
     - test: [ "nihao", "heihei", "kaka", "good"]
@@ -19,7 +19,7 @@
     #- { role: base }
     #- { role: docker, when: ENABLE_DOCKER| bool == true }
     #- { role: kubeadm_master, when: ENABLE_KUBEADM | bool == true }
-    - { role: vmware_harbor }
+    - { role: grafana }
   tasks:
     #- get_url: url=https://dldir1.qq.com/qqfile/qq/QQ9.0.8/24209/QQ9.0.8.24209.exe dest=/tmp timeout=1000
     - debug: var=test

@@ -5,7 +5,7 @@
   file: path=/var/log/kibana/kibana.log state=touch owner=kibana group=kibana
 
 - name: Provide kibana.yml to /etc/kibana/kibana.yml
-  template: src=kibana.yml.j2 dest=/etc/kibana/kibana.yml
+  template: src=kibana.yml.j2 dest=/etc/kibana/kibana.yml backup=true
   notify:
     - Restart kibana
 

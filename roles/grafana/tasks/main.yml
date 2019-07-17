@@ -1,7 +1,9 @@
 ---
 # tasks file for grafana
 
-- include: install.yml
+#- include: install.yml
+
+- include: download.yml
 
 - include: config.yml
 

@@ -1,0 +1,2 @@
+redis_exporter_log_path: "/var/log/redis-exporter.log"
+redis_exporter_args: "-redis.addr redis://localhost:{{ REDIS_PORT }} -redis.alias redis-server  -web.listen-address 0.0.0.0:{{REDIS_EXPORTER_PORT}} -web.telemetry-path /metrics {% if REDIS_PASSWORD %} -redis.password {{REDIS_PASSWORD}} {% endif %}" 

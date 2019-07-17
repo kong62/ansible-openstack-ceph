@@ -1,0 +1,4 @@
+---
+mysqld_exporter_collect: []
+
+mysqld_exporter_no_collect: []

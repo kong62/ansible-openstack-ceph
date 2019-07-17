@@ -1,0 +1,81 @@
+---
+- name: Create the MySQL Exporter group
+  group:
+    name: "{{ __mysqld_exporter_group }}"
+    state: present
+    system: true
+
+- name: Create the MySQL Exporter user
+  user:
+    name: "{{ __mysqld_exporter_user }}"
+    groups: "{{ __mysqld_exporter_group }}"
+    append: true
+    shell: /usr/sbin/nologin
+    system: true
+    createhome: false
+    home: /
+
+- name: Mkidr /opt/download/mysqld_exporter
+  file: path=/opt/download/mysqld_exporter state=directory recurse=yes
+  run_once: true
+  delegate_to: "{{item}}"
+  with_items:
+    - localhost
+    - "{{groups['mysql']}}"
+
+- block:
+    - name: Test mysqld_exporter Package
+      stat: path=/opt/download/mysqld_exporter/mysqld_exporter-{{ MYSQLD_EXPORTER_VERSION }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}.tar.gz
+      register: mysqld_exporter_pack
+
+    - name: Download mysqld_exporter binary to local folder
+      become: false
+      get_url:
+        url: "https://github.com/prometheus/mysqld_exporter/releases/download/v{{ MYSQLD_EXPORTER_VERSION }}/mysqld_exporter-{{ MYSQLD_EXPORTER_VERSION }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}.tar.gz"
+        dest: "/opt/download/mysqld_exporter/mysqld_exporter-{{ MYSQLD_EXPORTER_VERSION }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}.tar.gz"
+        checksum: "sha256:{{ __mysqld_exporter_checksum }}"
+      register: _download_binary
+      until: _download_binary is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+      when: mysqld_exporter_pack.stat.exists == False and LOCAL_PACKET_ENABLE | bool == false
+  run_once: yes
+  delegate_to: localhost
+
+- name: Unpack mysqld_exporter binary
+  become: false
+  unarchive:
+    src: "/opt/download/mysqld_exporter/mysqld_exporter-{{ MYSQLD_EXPORTER_VERSION }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}.tar.gz"
+    dest: "/opt/download/mysqld_exporter"
+    creates: "/opt/download/mysqld_exporter/mysqld_exporter-{{ MYSQLD_EXPORTER_VERSION }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}/mysqld_exporter"
+  delegate_to: localhost
+  check_mode: false
+
+- name: Propagate mysqld_exporter binaries
+  copy:
+    src: "/opt/download/mysqld_exporter/mysqld_exporter-{{ MYSQLD_EXPORTER_VERSION }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}/mysqld_exporter"
+    dest: "/usr/local/bin/mysqld_exporter"
+    mode: 0755
+    owner: root
+    group: root
+  notify:
+    - restart mysqld exporter
+
+  when: not ansible_check_mode
+- name: Copy the mysqld_exporter systemd service file
+  template:
+    src: mysqld_exporter.service.j2
+    dest: /usr/lib/systemd/system/mysqld_exporter.service
+    owner: root
+    group: root
+    mode: 0644
+  #no_log: true
+  notify:
+    - restart mysqld exporter
+
+- name: Ensure mysqld_exporter is enabled on boot
+  systemd:
+    daemon_reload: true
+    name: mysqld_exporter
+    enabled: true

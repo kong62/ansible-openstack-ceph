@@ -1,0 +1,29 @@
+[Unit]
+Description=Prometheus Redis Exporter
+After=network.target
+
+[Service]
+Type=simple
+# TODO: make redis_exporter_args works with env file
+#EnvironmentFile=-/etc/default/redis-exporter
+Environment=HOSTNAME={{ ansible_hostname }}
+ExecStart=/usr/local/bin/redis_exporter {{ redis_exporter_args }}
+PIDFile=/var/run/redis_exporter.pid
+TimeoutStopSec=10
+Restart=always
+#User=redis
+#Group=redis
+#RuntimeDirectory=redis
+
+ExecStop=/bin/kill -s TERM $MAINPID
+
+#UMask=007
+#PrivateTmp=yes
+LimitNOFILE=65535
+#PrivateDevices=yes
+#ProtectHome=yes
+#ReadOnlyDirectories=/
+
+[Install]
+WantedBy=multi-user.target
+Alias=redis-exporter.service

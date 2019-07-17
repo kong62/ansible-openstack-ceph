@@ -1,0 +1,4 @@
+---
+- include: preflight.yml
+
+- include: install.yml

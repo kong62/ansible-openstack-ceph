@@ -1,0 +1,35 @@
+[Unit]
+Description=Prometheus Mysqld Exporter
+After=network-online.target
+
+[Service]
+Type=simple
+User={{ __mysqld_exporter_user }}
+Group={{ __mysqld_exporter_group }}
+{% if MYSQLD_EXPORTER_DSN != "" %}
+Environment="DATA_SOURCE_NAME={{ MYSQLD_EXPORTER_DSN }}"
+{% endif %}
+ExecStart=/usr/local/bin/mysqld_exporter \
+    --web.listen-address 0.0.0.0:{{ MYSQLD_EXPORTER_PORT }} \
+    {% for c in mysqld_exporter_collect -%}
+    {%   if not c is mapping -%}
+    --collect.{{ c }} \
+    {%   else -%}
+    {%     set name,opt = (c.items() | list)[0] -%}
+    {%     for k,v in opt.items() -%}
+    --collect.{{ name }}.{{ k }}={{ v }} \
+    {%     endfor -%}
+    {%   endif -%}
+    {% endfor -%}
+    {% for c in mysqld_exporter_no_collect -%}
+    --no-collect.{{ c }} \
+    {% endfor %}
+    {% if MYSQLD_EXPORTER_MY_CNF != "" %}
+    --config.my-cnf {{ MYSQLD_EXPORTER_MY_CNF }} \
+    {% endif %}
+
+SyslogIdentifier=mysqld_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
