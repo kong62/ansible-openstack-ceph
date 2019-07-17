@@ -8,9 +8,17 @@
   with_items: "{{ consul_os_packages }}"
   tags: installation
 
+- name: Mkidr {{ down_path }}
+  file: path={{ down_path }} state=directory recurse=yes
+  run_once: true
+  delegate_to: "{{item}}"
+  with_items:
+    - localhost
+    - "{{groups['cloud-consul']}}"
+
 - name: Read package checksum file
   stat:
-    path: "{{ role_path }}/files/consul_{{ consul_version }}_SHA256SUMS"
+    path: "{{ down_path }}/files/consul_{{ consul_version }}_SHA256SUMS"
   become: false
   vars:
     ansible_become: false
@@ -22,7 +30,7 @@
 - name: Download package checksum file
   get_url:
     url: "{{ consul_checksum_file_url }}"
-    dest: "{{ role_path }}/files/consul_{{ consul_version }}_SHA256SUMS"
+    dest: "{{ down_path }}/files/consul_{{ consul_version }}_SHA256SUMS"
   become: false
   vars:
     ansible_become: false
@@ -32,7 +40,7 @@
   delegate_to: 127.0.0.1
 
 - name: Read package checksum
-  shell: grep "{{ consul_pkg }}" "{{ role_path }}/files/consul_{{ consul_version }}_SHA256SUMS" | awk '{print $1}'
+  shell: grep "{{ consul_pkg }}" "{{ down_path }}/files/consul_{{ consul_version }}_SHA256SUMS" | awk '{print $1}'
   become: false
   vars:
     ansible_become: false
@@ -44,7 +52,7 @@
 
 - name: Check Consul package file
   stat:
-    path: "{{ role_path }}/files/{{ consul_pkg }}"
+    path: "{{ down_path }}/files/{{ consul_pkg }}"
   become: false
   vars:
     ansible_become: false
@@ -55,7 +63,7 @@
 - name: Download Consul package
   get_url:
     url: "{{ consul_zip_url }}"
-    dest: "{{ role_path }}/files/{{ consul_pkg }}"
+    dest: "{{ down_path }}/files/{{ consul_pkg }}"
     checksum: "sha256:{{ consul_sha256.stdout }}"
     timeout: "42"
   become: false
@@ -85,7 +93,7 @@
 
 - name: Unarchive Consul package
   unarchive:
-    src: "{{ role_path }}/files/{{ consul_pkg }}"
+    src: "{{ down_path }}/files/{{ consul_pkg }}"
     dest: "{{ install_temp.path }}/"
     creates: "{{ install_temp.path }}/consul"
   become: false

@@ -40,6 +40,7 @@ consul_config_path: "/etc/consul"
 consul_configd_path: "{{ consul_config_path }}/consul.d"
 consul_bootstrap_state: "{{ consul_config_path }}/.consul_bootstrapped"
 consul_data_path: "/var/lib/consul"
+down_path: /opt/download/consul
 consul_log_path: "{{ lookup('env','CONSUL_LOG_PATH') | default('/var/log/consul', true) }}"
 consul_log_file: "{{ lookup('env','CONSUL_LOG_FILE') | default('consul.log', true) }}"
 consul_run_path: "/var/run/consul"
@@ -179,7 +180,7 @@ consul_disable_keyring_file: "{{ lookup('env','CONSUL_DISABLE_KEYRING_FILE') | d
 
 ## TLS
 consul_tls_enable: "{{ lookup('env','CONSUL_TLS_ENABLE') | default(false, true) }}"
-consul_tls_src_files: "{{ lookup('env','CONSUL_TLS_SRC_FILES') | default(role_path+'/files', true) }}"
+consul_tls_src_files: "{{ lookup('env','CONSUL_TLS_SRC_FILES') | default(down_path+'/files', true) }}"
 
 consul_tls_dir: "{{ lookup('env','CONSUL_TLS_DIR') | default('/etc/consul/ssl', true) }}"
 
