@@ -1,18 +1,27 @@
+- name: Install chrony Package
+  yum: name=chrony state=present update_cache=yes
+  tags: ntp
+
 - name: Set Timezone To Asia/Shanghai
   timezone: name=Asia/Shanghai
+  tags: ntp
 
 - name: Provide /etc/chrony.conf
   template: src=chrony.conf.j2 dest=/etc/chrony.conf
   notify:
     - Restart chronyd
+  tags: ntp
 
 - name: Enable chronyd service
   service: name=chronyd state=started enabled=yes
+  tags: ntp
 
 - name: Sync Time On First Node
   shell: chronyc -a makestep || exit 0
-  when: inventory_hostname == groups['cloud-controller'][0]
+  when: inventory_hostname == groups['masters'][0]
+  tags: ntp
 
 - name: Sync Time On Other Nodes
   shell: chronyc -a makestep || exit 0
-  when: inventory_hostname != groups['cloud-controller'][0]
+  when: inventory_hostname != groups['masters'][0]
+  tags: ntp

@@ -2,3 +2,4 @@
   copy: src={{ item }} dest=/etc/bash_completion.d/
   with_fileglob:
     - bash_completion/*.bash_completion
+  tags: bash_completion
