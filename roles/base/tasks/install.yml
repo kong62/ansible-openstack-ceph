@@ -38,3 +38,5 @@
     - smartmontools
     - ipmitool
     - ipmiutil
+    - which
+    - pstree
