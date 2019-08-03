@@ -39,4 +39,4 @@
     - ipmitool
     - ipmiutil
     - which
-    - pstree
+    - libcgroup-tools
