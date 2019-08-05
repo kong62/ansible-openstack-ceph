@@ -1,0 +1,2 @@
+- name: Set Consul Bash Completion
+  shell: consul -autocomplete-install
