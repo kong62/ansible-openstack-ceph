@@ -8,7 +8,7 @@ etcds
 dockers
 nginx
 mysql
-redis
+cloud-redis
 vsftp
 jenkins
 cloud-consul
@@ -54,7 +54,7 @@ Sit-Test-07.offline.hupu.com ansible_host=10.64.57.47
 Sit-Test-01.offline.hupu.com ansible_host=10.64.57.41
 Sit-Test-20.offline.hupu.com ansible_host=10.64.57.40
 
-[redis]
+[cloud-redis]
 Sit-Test-02.offline.hupu.com ansible_host=10.64.57.42
 Sit-Test-03.offline.hupu.com ansible_host=10.64.57.43
 Sit-Test-04.offline.hupu.com ansible_host=10.64.57.44
@@ -103,8 +103,48 @@ Sit-Test-51.offline.hupu.com ansible_host=10.64.57.17
 Sit-Test-02.offline.hupu.com ansible_host=10.64.57.42 consul_node_role=server consul_bootstrap_expect=true
 Sit-Test-03.offline.hupu.com ansible_host=10.64.57.43 consul_node_role=server consul_bootstrap_expect=true
 Sit-Test-04.offline.hupu.com ansible_host=10.64.57.44 consul_node_role=server consul_bootstrap_expect=true
-Sit-Test-05.offline.hupu.com ansible_host=10.64.57.45 consul_node_role=client
- 
+#Sit-Test-05.offline.hupu.com ansible_host=10.64.57.45 consul_node_role=client
+#CICD-TEST-01.offline.hupu.com ansible_host=10.64.57.0  consul_node_role=client
+#Sit-Test-52.offline.hupu.com ansible_host=10.64.57.80 consul_node_role=client
+#Sit-Test-51.offline.hupu.com ansible_host=10.64.57.17  consul_node_role=client
+#Sit-Test-08.offline.hupu.com ansible_host=10.64.57.48 consul_node_role=client
+#Sit-Test-09.offline.hupu.com ansible_host=10.64.57.34 consul_node_role=client
+#Sit-Test-10.offline.hupu.com ansible_host=10.64.57.35 consul_node_role=client
+#Sit-Test-12.offline.hupu.com ansible_host=10.64.57.24 consul_node_role=client
+#Sit-Test-13.offline.hupu.com ansible_host=10.64.57.25 consul_node_role=client
+#Sit-Test-14.offline.hupu.com ansible_host=10.64.57.26 consul_node_role=client
+#Sit-Test-15.offline.hupu.com ansible_host=10.64.57.27 consul_node_role=client
+#Sit-Test-16.offline.hupu.com ansible_host=10.64.57.36 consul_node_role=client
+#Sit-Test-17.offline.hupu.com ansible_host=10.64.57.37 consul_node_role=client
+#Sit-Test-18.offline.hupu.com ansible_host=10.64.57.38 consul_node_role=client
+#Sit-Test-19.offline.hupu.com ansible_host=10.64.57.39 consul_node_role=client
+#Sit-Test-21.offline.hupu.com ansible_host=10.64.56.255 consul_node_role=client
+#Sit-Test-22.offline.hupu.com ansible_host=10.64.57.23 consul_node_role=client
+#Sit-Test-23.offline.hupu.com ansible_host=10.64.57.28 consul_node_role=client
+#Sit-Test-24.offline.hupu.com ansible_host=10.64.57.29 consul_node_role=client
+#Sit-Test-25.offline.hupu.com ansible_host=10.64.57.30 consul_node_role=client
+#Sit-Test-26.offline.hupu.com ansible_host=10.64.57.31 consul_node_role=client
+#Sit-Test-27.offline.hupu.com ansible_host=10.64.57.32 consul_node_role=client
+#Sit-Test-28.offline.hupu.com ansible_host=10.64.57.33 consul_node_role=client
+#Sit-Test-29.offline.hupu.com ansible_host=10.64.57.50 consul_node_role=client
+#Sit-Test-30.offline.hupu.com ansible_host=10.64.57.51 consul_node_role=client
+#Sit-Test-31.offline.hupu.com ansible_host=10.64.57.52 consul_node_role=client
+#Sit-Test-32.offline.hupu.com ansible_host=10.64.57.53 consul_node_role=client
+#Sit-Test-33.offline.hupu.com ansible_host=10.64.57.54 consul_node_role=client
+#Sit-Test-34.offline.hupu.com ansible_host=10.64.57.55 consul_node_role=client
+#Sit-Test-35.offline.hupu.com ansible_host=10.64.57.56 consul_node_role=client
+#Sit-Test-36.offline.hupu.com ansible_host=10.64.57.57 consul_node_role=client
+#Sit-Test-37.offline.hupu.com ansible_host=10.64.57.58 consul_node_role=client
+#Sit-Test-38.offline.hupu.com ansible_host=10.64.57.59 consul_node_role=client
+#Sit-Test-06.offline.hupu.com ansible_host=10.64.57.46 consul_node_role=client
+#Sit-Test-07.offline.hupu.com ansible_host=10.64.57.47 consul_node_role=client
+#Sit-Test-01.offline.hupu.com ansible_host=10.64.57.41 consul_node_role=client
+#Sit-Test-20.offline.hupu.com ansible_host=10.64.57.40 consul_node_role=client
+#Sit-Test-11.offline.hupu.com ansible_host=10.64.57.22 consul_node_role=client
+Sit-Test-39.offline.hupu.com ansible_host=10.64.57.72 consul_node_role=client
+Sit-Test-47.offline.hupu.com ansible_host=10.64.57.68 consul_node_role=client
+Sit-Test-45.offline.hupu.com ansible_host=10.64.57.66 consul_node_role=client
+
 [testgroup:vars]
 ansible_ssh_user=root
 ansible_ssh_pass=root@1234

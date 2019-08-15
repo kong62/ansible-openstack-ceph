@@ -21,7 +21,6 @@
       owner: "{{ consul_user }}"
       group: "{{ consul_group }}"
       mode: 0750
-
   when: ansible_os_family != 'Windows'
 
 - name: Create log directory

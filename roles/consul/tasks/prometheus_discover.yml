@@ -1,0 +1,4 @@
+- name: Provides Prometheus Files
+  copy: src=/tmp/node_exporter.json dest=/etc/consul/consul.d/node_exporter.json
+  notify:
+    - restart consul

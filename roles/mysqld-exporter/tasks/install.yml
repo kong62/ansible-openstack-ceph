@@ -61,8 +61,14 @@
     group: root
   notify:
     - restart mysqld exporter
-
   when: not ansible_check_mode
+
+#- name: Mkdir /etc/mysqld_exporter/
+#  file: path=/etc/mysqld_exporter/ state=directory
+
+#- name: Copy my.cnf to /etc/mysqld_exporter/.my.cnf
+#  template: src=my.cnf.j2 dest=/etc/mysqld_exporter/.my.cnf
+
 - name: Copy the mysqld_exporter systemd service file
   template:
     src: mysqld_exporter.service.j2

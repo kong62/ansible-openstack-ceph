@@ -1,0 +1,35 @@
+- name: redis_exporter | init-script
+  template:
+    src: init-script.j2
+    dest: /etc/init.d/redis_exporter
+    #owner: root
+    #group: root
+    mode: '0755'
+  notify:
+    - restart redis_exporter
+  when: ansible_distribution_major_version | int == 6
+
+- name: redis_exporter | systemd script
+  template:
+    src: systemd-script.j2
+    dest: /lib/systemd/system/redis_exporter.service
+    #owner: root
+    #group: root
+    mode: '0755'
+  notify:
+    - restart redis_exporter
+  when: ansible_distribution_major_version | int == 7
+
+- name: redis_exporter | enable service
+  service:
+    name: redis_exporter
+    enabled: yes
+    state: started
+
+- name: redis_exporter | logrotation
+  template:
+    src: logrotate.j2
+    dest: /etc/logrotate.d/redis_exporter
+    #owner: root
+    #group: root
+    mode: '0644'

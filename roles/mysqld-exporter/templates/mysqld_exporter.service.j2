@@ -9,7 +9,7 @@ Group={{ __mysqld_exporter_group }}
 {% if MYSQLD_EXPORTER_DSN != "" %}
 Environment="DATA_SOURCE_NAME={{ MYSQLD_EXPORTER_DSN }}"
 {% endif %}
-ExecStart=/usr/local/bin/mysqld_exporter \
+ExecStart=/usr/local/bin/mysqld_exporter --config.my-cnf=/etc/mysqld_exporter/.my.cnf \
     --web.listen-address 0.0.0.0:{{ MYSQLD_EXPORTER_PORT }} \
     {% for c in mysqld_exporter_collect -%}
     {%   if not c is mapping -%}

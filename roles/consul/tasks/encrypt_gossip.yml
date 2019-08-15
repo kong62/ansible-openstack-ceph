@@ -25,6 +25,7 @@
   when:
     - consul_raw_key is defined
     - bootstrap_state.stat.exists | bool
+  run_once: true
   delegate_to: 127.0.0.1
 
 - name: Read gossip encryption key for servers that require it
@@ -43,6 +44,7 @@
   when:
     - consul_raw_key is defined
     - bootstrap_state.stat.exists | bool
+  run_once: true
   delegate_to: 127.0.0.1
 
 - block:

@@ -154,6 +154,7 @@ PROMETHEUS_VERSION: 2.10.0
 PROMETHEUS_PORT: 9090
 
 
+# This role only works with systemd
 NODE_EXPORTER_ENABLED: true
 NODE_EXPORTER_VERSION: 0.18.1
 NODE_EXPORTER_PORT: "9100"
@@ -165,7 +166,6 @@ MYSQLD_EXPORTER_PORT: "9104"
 MYSQL_USER: root
 MYSQL_PASS: Hoopchina!1
 MYSQLD_EXPORTER_DSN: "{{MYSQL_USER}}:{{MYSQL_PASS}}@(localhost:{{MYSQL_PORT}})/"
-#MYSQLD_EXPORTER_DSN: "root:Hoopchina!1@(localhost:3306)/"
 MYSQLD_EXPORTER_MY_CNF: ""
 
 
@@ -186,7 +186,7 @@ MEMCACHED_EXPORTER_VERSION: 0.5.0
 MEMCACHED_EXPORTER_PORT: 9150
 
 
-#https://github.com/brianshumate/ansible-consul
+# https://github.com/brianshumate/ansible-consul
 CONSUL_ENABLED: true
 CONSUL_VERSION: 1.5.2
 CONSUL_PORTS_DNS: 8600

@@ -9,21 +9,21 @@
       pip:
         name: netaddr
         extra_args: --user
+      run_once: true
       delegate_to: 127.0.0.1
       become: false
       vars:
         ansible_become: false
-      run_once: true
       when: not is_virtualenv or is_virtualenv == None
 
     - name: Install netaddr dependency on controlling host (virtualenv)
       pip:
         name: netaddr
+      run_once: true
       delegate_to: 127.0.0.1
       become: false
       vars:
         ansible_become: false
-      run_once: true
       when: is_virtualenv is defined
 
 - name: Include checks/asserts
@@ -55,3 +55,6 @@
 
 - name:  Include Bash Completion
   include_tasks: bash_completion.yml
+
+- name:  Include Prometheus Discover
+  include_tasks: prometheus_discover.yml

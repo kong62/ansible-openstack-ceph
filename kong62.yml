@@ -1,11 +1,7 @@
 ---
-- name: Init Centos OS Bases
-  hosts: "cloud-memcache"
+- name: Deploy redis-exporter on all redis nodes
+  hosts: "cloud-redis"
   gather_facts: true
-  vars:
-    - test: [ "nihao", "heihei", "kaka", "good"]
   roles:
-    - { role: memcached-exporter, when: MEMCACHED_EXPORTER_ENABLED }
-  tasks:
-    - debug: var=test
-      when: test is defined and test
+    - { role: redis-exporter, when: REDIS_EXPORTER_ENABLED }
+  tags: redis-exporter_deploy

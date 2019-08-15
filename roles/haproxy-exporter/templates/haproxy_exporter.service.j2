@@ -10,6 +10,8 @@ Type=simple
 #Group={{ haproxy_exporter_system_group }}
 #Nice=-5
 ExecStart={{ haproxy_exporter_bin_dir}}/haproxy_exporter {% if haproxy_exporter_ssl_verify | bool == true %} --haproxy.ssl-verify {% endif %} --web.listen-address=:{{ HAPROXY_EXPORTER_PORT }} --haproxy.scrape-uri={{ haproxy_exporter_scrape_uri }}
+#haproxy_exporter  --haproxy.scrape-uri="http://user:pass@haproxy.example.com/haproxy?stats;csv"
+#haproxy_exporter --haproxy.scrape-uri=unix:/run/haproxy/admin.sock
 #SyslogIdentifier=haproxy_exporter
 Restart=always
 

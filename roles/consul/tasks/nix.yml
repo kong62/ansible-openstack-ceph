@@ -72,7 +72,7 @@
             consul_raw_key: "{{ consul_config.encrypt }}"
           when: consul_config is defined
 
-      no_log: true
+      #no_log: true
       when:
         - consul_raw_key is not defined
         - bootstrap_state.stat.exists | bool
@@ -86,8 +86,9 @@
       become: false
       vars:
         ansible_become: false
-      no_log: true
+      #no_log: true
       register: consul_local_key
+      run_once: true
       delegate_to: localhost
       changed_when: false
       when: consul_raw_key is defined
@@ -106,8 +107,7 @@
           vars:
             ansible_become: false
           delegate_to: localhost
-
-      no_log: true
+      #no_log: true
       run_once: true
       when:
         - not consul_local_key.changed
@@ -116,7 +116,7 @@
     - name: Read gossip encryption key for servers that require it
       set_fact:
         consul_raw_key: "{{ lookup('file', '/tmp/consul_raw.key') }}"
-      no_log: true
+      #no_log: true
       when:
         - consul_raw_key is not defined
 
@@ -130,7 +130,7 @@
       run_once: true
       delegate_to: localhost
       changed_when: false
-  no_log: true
+  #no_log: true
   when:
     - consul_encrypt_enable
 

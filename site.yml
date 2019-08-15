@@ -14,7 +14,7 @@
   roles:
     - { role: base }
     - { role: bond, when: ENABLE_BOND | bool == true }
-
+  tags: init_centos
 
 - name: Init Centos OpenStack Bases
   hosts: all
@@ -28,6 +28,7 @@
   gather_facts: no
   roles:
     - { role: pacemaker, when: ENABLE_PACEMAKER | bool == true }
+  tags: pacemaker_deploy
 
 
 - name: Install Ceph Mons And Mgrs
@@ -37,6 +38,7 @@
     - { role: ceph_common, when: ENABLE_CEPH | bool == true }
     - { role: ceph_mon, when: ENABLE_CEPH | bool == true }
     - { role: ceph_mgr, when: ENABLE_CEPH | bool == true }
+  tags: ceph_mon_deploy
 
 
 - name: Install Ceph Osds
@@ -45,6 +47,7 @@
   roles:
     - { role: ceph_common, when: ENABLE_CEPH | bool == true }
     - { role: ceph_osd, when: ENABLE_CEPH | bool == true }
+  tags: ceph_osd_deploy
 
 
 - name: Create Pools For Openstack
@@ -60,6 +63,7 @@
   gather_facts: no
   roles:
     - { role: memcache, when: ENABLE_OPENSTACK | bool == true  and ENABLE_MEMCACHED | bool == true }
+  tags: memcache_deploy
 
 
 - name: Install Mariadb
@@ -67,6 +71,7 @@
   gather_facts: no
   roles:
     - { role: mariadb_cluster, when: ENABLE_OPENSTACK | bool == true  and ENABLE_MYSQL | bool == true }
+  tags: mariadb_cluster_deploy
 
 
 - name: Install Rabbitmq
@@ -74,6 +79,7 @@
   gather_facts: no
   roles:
     - { role: rabbitmq_cluster, when: ENABLE_OPENSTACK | bool == true  and ENABLE_RABBITMQ | bool == true }
+  tags: rabbitmq_cluster_deploy
 
 
 - name: Install Keystone Glance Neutron On Controller Nodes
@@ -83,6 +89,7 @@
     - { role: keystone, when: ENABLE_OPENSTACK | bool == true  and ENABLE_KEYSTONE | bool == true }
     - { role: glance, when: ENABLE_OPENSTACK | bool == true  and ENABLE_GLANCE | bool == true }
     - { role: neutron, when: ENABLE_OPENSTACK | bool == true  and ENABLE_NEUTRON | bool == true }
+  tags: openstack_controller_deploy
 
 
 - name: Install Network Agents On Network Nodes
@@ -94,6 +101,7 @@
     - { role: neutron_metadata_agent, when: ENABLE_OPENSTACK | bool == true  and ENABLE_NEUTRON | bool == true }
     - { role: neutron_openvswitch_agent, when: ENABLE_OPENSTACK | bool == true  and ENABLE_NEUTRON | bool == true }
     - { role: neutron_lbaas_agent, when: ENABLE_LBAAS | bool == true and ENABLE_OPENSTACK | bool == true  and ENABLE_NEUTRON | bool == true }
+  tags: neutron_agents_deploy
 
 
 - name: Install Network Agent On Compute Nodes
@@ -101,6 +109,7 @@
   gather_facts: no
   roles:
     - { role: neutron_openvswitch_agent, when: ENABLE_OPENSTACK | bool == true  and ENABLE_NEUTRON | bool == true }
+  tags: neutron_openvswitch_agent_deploy
 
 
 - name: Install Cinder On Controller Nodes
@@ -108,6 +117,7 @@
   gather_facts: yes
   roles:
     - { role: cinder, when: ENABLE_OPENSTACK | bool == true  and ENABLE_CINDER | bool == true }
+  tags: cinder_controller_deploy
 
 
 - name: Install Cinder On Storage Nodes
@@ -115,6 +125,7 @@
   gather_facts: yes
   roles:
     - { role: cinder_volume, when: ENABLE_OPENSTACK | bool == true  and ENABLE_CINDER | bool == true }
+  tags: cinder_volume_deploy
 
 
 - name: Install Nova On Controller Nodes
@@ -122,6 +133,7 @@
   gather_facts: no
   roles:
     - { role: nova, when: ENABLE_OPENSTACK | bool == true  and ENABLE_NOVA | bool == true }
+  tags: nova_controller_deploy
 
 
 - name: Install Nova On Compute Nodes
@@ -129,6 +141,7 @@
   gather_facts: no
   roles:
     - { role: nova_compute, when: ENABLE_OPENSTACK | bool == true  and ENABLE_NOVA | bool == true }
+  tags: nova_compute_deploy
 
 
 - name: Install Dashboard On Controller Nodes
@@ -136,6 +149,8 @@
   gather_facts: no
   roles:
     - { role: horizon, when: ENABLE_OPENSTACK | bool == true  and ENABLE_HORIZON | bool == true  }
+  tags: horizon_deploy
+
 
 
 - name: Fix Openstack Bugs
@@ -143,18 +158,21 @@
   gather_facts: no
   roles:
     - { role: openstack_bugs_fix, when: ENABLE_OPENSTACK | bool == true and ENABLE_OPENSTACK_BUGS_FIX | bool == true }
+  tags: openstack_bugs_fix
 
 
 - name: Deploy Zabbix Server
   hosts: cloud-monitor
   roles:
     - { role: zabbix_server, when: ENABLE_ZABBIX | bool == true }
+  tags: zabbix_server_deploy
 
 
 - name: Deploy Zabbix Agent
   hosts: all
   roles:
     - { role: zabbix_agent, when: ENABLE_ZABBIX | bool == true }
+  tags: zabbix_agent_deploy
 
 
 - name: Deploy influxdb chronograf kapacitor
@@ -162,6 +180,7 @@
   gather_facts: no 
   roles:
     - { role: influxdb, when: ENABLE_INFLUXDATA | bool == true }
+  tags: influxdb_deploy
 
 
 - name: Deploy telegraf
@@ -169,6 +188,7 @@
   gather_facts: no
   roles:
     - { role: telegraf, when: ENABLE_INFLUXDATA | bool == true }
+  tags: telegraf_deploy
 
 
 - name: Deploy grafana
@@ -176,6 +196,7 @@
   gather_facts: no
   roles:
     - { role: grafana, when: ENABLE_GRAFANA | bool == true }
+  tags: grafana_deploy
 
 
 - name: Deploy prometheus
@@ -183,6 +204,7 @@
   gather_facts: yes
   roles:
     - { role: prometheus, when: ENABLE_PROMETHEUS | bool == true }
+  tags: prometheus_deploy
 
 
 - name: Deploy consul
@@ -190,6 +212,7 @@
   gather_facts: true
   roles:
     - { role: consul, when: CONSUL_ENABLED | bool == true }
+  tags: consul_deploy
 
 
 - name: Deploy node-exporter on all nodes exclude k8s groups
@@ -198,6 +221,7 @@
   gather_facts: true
   roles:
     - { role: node-exporter, when: NODE_EXPORTER_ENABLED }
+  tags: node-exporter_deploy
 
 
 - name: Deploy mysqld-exporter on all mysql nodes
@@ -205,6 +229,7 @@
   gather_facts: true
   roles:
     - { role: mysqld-exporter, when: MYSQLD_EXPORTER_ENABLED }
+  tags: mysqld-exporter_deploy
 
 
 - name: Deploy redis-exporter on all redis nodes
@@ -212,6 +237,7 @@
   gather_facts: true
   roles:
     - { role: redis-exporter, when: REDIS_EXPORTER_ENABLED }
+  tags: redis-exporter_deploy
 
 
 - name: Deploy haproxy-exporter on all haproxy nodes
@@ -219,6 +245,7 @@
   gather_facts: true
   roles:
     - { role: haproxy-exporter, when: HAPROXY_EXPORTER_ENABLED }
+  tags: haproxy-exporter_deploy
 
 
 - name: Deploy memcached-exporter on all memcache nodes
@@ -226,6 +253,7 @@
   gather_facts: true
   roles:
     - { role: memcached-exporter, when: MEMCACHED_EXPORTER_ENABLED }
+  tags: memcached-exporter_deploy
 
 
 - name: Deploy ELK
@@ -233,3 +261,4 @@
   gather_facts: no
   roles:
     - { role: elasticsearch, when: ENABLE_ELKSTACK| bool == true }
+  tags: elk_deploy

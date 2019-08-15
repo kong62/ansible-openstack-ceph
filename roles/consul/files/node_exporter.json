@@ -1,0 +1,1 @@
+{"service": {"name": "node_exporter", "tags": ["exporter"], "port": 9100}}

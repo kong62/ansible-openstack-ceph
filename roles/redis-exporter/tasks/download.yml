@@ -1,0 +1,44 @@
+- name: Mkidr /opt/download/redis_exporter
+  file: path=/opt/download/redis_exporter state=directory recurse=yes
+  run_once: true
+  delegate_to: "{{item}}"
+  with_items:
+    - localhost
+    - "{{groups['cloud-redis']}}"
+
+- block:
+    - name: Test redis_exporter Package
+      stat: path=/opt/download/redis_exporter/redis_exporter-{{ REDIS_EXPORTER_VERSION }}.linux-amd64.tar.gz
+      register: redis_exporter_pack
+      changed_when: false
+
+    - name: Download redis_exporter binary to local folder
+      become: false
+      get_url:
+        url: "https://github.com/oliver006/redis_exporter/releases/download/{{ REDIS_EXPORTER_VERSION }}/redis_exporter-{{ REDIS_EXPORTER_VERSION }}.linux-amd64.tar.gz"
+        dest: "/opt/download/redis_exporter"
+      register: _download_binary
+      until: _download_binary is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+      when: redis_exporter_pack.stat.exists == False and ENABLE_LOCAL_PACKETS | bool == false 
+
+    - name: redis_exporter | extract
+      unarchive:
+        src: "/opt/download/redis_exporter/redis_exporter-{{ REDIS_EXPORTER_VERSION }}.linux-amd64.tar.gz"
+        dest: "/opt/download/redis_exporter"
+        #remote_src: yes
+  run_once: yes
+  delegate_to: localhost
+
+- name: redis_exporter | copy binary
+  copy:
+    src: "/opt/download/redis_exporter/redis_exporter-{{ REDIS_EXPORTER_VERSION }}.linux-amd64/redis_exporter"
+    dest: "/usr/local/bin/redis_exporter"
+    #owner: "root"
+    #group: "root"
+    #remote_src: yes
+    mode: 0755
+  notify:
+    - restart redis_exporter

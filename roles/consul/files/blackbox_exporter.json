@@ -1,0 +1,1 @@
+{"service": {"name": "blackbox_exporter", "tags": ["exporter"], "port": 9115}}

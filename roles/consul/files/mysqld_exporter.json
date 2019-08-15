@@ -1,0 +1,1 @@
+{"service": {"name": "mysqld_exporter", "tags": ["exporter"], "port": 9104}}
